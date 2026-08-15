@@ -103,35 +103,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* DARK BANNER SECTION */}
-        <section className="container banner-wrap">
-          <div className="dark-banner">
-            <div className="banner-glow-1"></div>
-            <div className="banner-glow-2"></div>
-            
-            <div className="banner-content">
-              <div className="banner-badge">
-                <span className="material-symbols-outlined icon-filled text-primary" style={{ fontSize: '14px' }}>security</span>
-                Exclusive Protection
-              </div>
-              <h2 className="font-headline banner-title">
-                Free Service Charge <br />
-                <span className="italic text-primary">for a full year.</span>
-              </h2>
-              <p className="banner-desc">
-                Introducing <strong style={{ color: 'white' }}>CoolFix Appliance Insurance</strong>. Get zero service charges for 12 months and up to <strong className="text-primary">50% OFF</strong> on every spare part.
-              </p>
-            </div>
-            
-            <div className="banner-action">
-              <Link href="/booking" className="btn btn-primary banner-btn">
-                <span className="material-symbols-outlined icon-filled">bolt</span>
-                Get Protected
-              </Link>
-              <p className="banner-note">*Available on AC and Fridge</p>
-            </div>
-          </div>
-        </section>
+
 
         {/* SERVICES CATALOG */}
         <section id="services" className="services-section">
