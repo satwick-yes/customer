@@ -365,32 +365,58 @@ export default function WorkerPortal() {
           {!booking ? (
             <>
               {/* Search Bar */}
-              <div className="card" style={{ marginBottom: 24, padding: 20 }}>
-                <form onSubmit={handleSearch} className="search-box">
+              <div className="card" style={{ marginBottom: 20, padding: '16px 20px' }}>
+                <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <input 
                     type="text" 
                     placeholder="Search by Job ID (e.g., AC-12345A)..." 
                     value={jobId}
                     onChange={e => setJobId(e.target.value)}
                     className="form-input"
+                    style={{ flex: 1, minWidth: '220px', height: 48, margin: 0 }}
                     required
                   />
-                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                  <button type="submit" className="btn btn-primary" style={{ height: 48, padding: '0 24px', flexShrink: 0 }} disabled={loading}>
                     {loading ? 'Searching...' : 'Find Job'}
                   </button>
                 </form>
-                {error && <p className="form-error" style={{ marginTop: 12 }}>{error}</p>}
+                {error && <p className="form-error" style={{ marginTop: 12, marginBottom: 0 }}>{error}</p>}
               </div>
 
-              {/* Queue Tabs */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 16, borderBottom: '2px solid var(--border)', paddingBottom: 8, flexWrap: 'wrap' }}>
+              {/* Symmetrical Queue Tabs */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: 12,
+                marginBottom: 20
+              }}>
                 <button
                   onClick={() => setActiveTab('assigned')}
                   className={`btn ${activeTab === 'assigned' ? 'btn-primary' : 'btn-outline'}`}
-                  style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
+                  style={{
+                    height: 46,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    borderRadius: 10,
+                    background: activeTab === 'assigned' ? 'var(--primary)' : 'white',
+                    color: activeTab === 'assigned' ? 'white' : 'var(--text)',
+                    border: activeTab === 'assigned' ? 'none' : '1px solid var(--border)',
+                    boxShadow: activeTab === 'assigned' ? '0 4px 12px rgba(220,38,38,0.25)' : 'none'
+                  }}
                 >
                   <span>👨‍🔧 Assigned to Me</span>
-                  <span style={{ background: activeTab === 'assigned' ? 'rgba(255,255,255,0.25)' : 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: 10, fontSize: '0.75rem', fontWeight: 800 }}>
+                  <span style={{
+                    background: activeTab === 'assigned' ? 'rgba(255,255,255,0.25)' : '#DC2626',
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: 12,
+                    fontSize: '0.75rem',
+                    fontWeight: 800
+                  }}>
                     {myAssignedJobs.length}
                   </span>
                 </button>
@@ -398,10 +424,30 @@ export default function WorkerPortal() {
                 <button
                   onClick={() => setActiveTab('unassigned')}
                   className={`btn ${activeTab === 'unassigned' ? 'btn-primary' : 'btn-outline'}`}
-                  style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
+                  style={{
+                    height: 46,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    borderRadius: 10,
+                    background: activeTab === 'unassigned' ? '#F59E0B' : 'white',
+                    color: activeTab === 'unassigned' ? 'white' : 'var(--text)',
+                    border: activeTab === 'unassigned' ? 'none' : '1px solid var(--border)',
+                    boxShadow: activeTab === 'unassigned' ? '0 4px 12px rgba(245,158,11,0.25)' : 'none'
+                  }}
                 >
                   <span>⏳ Unassigned / Open</span>
-                  <span style={{ background: activeTab === 'unassigned' ? 'rgba(255,255,255,0.25)' : '#F59E0B', color: 'white', padding: '2px 8px', borderRadius: 10, fontSize: '0.75rem', fontWeight: 800 }}>
+                  <span style={{
+                    background: activeTab === 'unassigned' ? 'rgba(255,255,255,0.25)' : '#F59E0B',
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: 12,
+                    fontSize: '0.75rem',
+                    fontWeight: 800
+                  }}>
                     {unassignedJobs.length}
                   </span>
                 </button>
@@ -409,29 +455,42 @@ export default function WorkerPortal() {
                 <button
                   onClick={() => setActiveTab('all')}
                   className={`btn ${activeTab === 'all' ? 'btn-primary' : 'btn-outline'}`}
-                  style={{ fontSize: '0.85rem', padding: '8px 16px' }}
+                  style={{
+                    height: 46,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    borderRadius: 10,
+                    background: activeTab === 'all' ? '#1E293B' : 'white',
+                    color: activeTab === 'all' ? 'white' : 'var(--text)',
+                    border: activeTab === 'all' ? 'none' : '1px solid var(--border)',
+                    boxShadow: activeTab === 'all' ? '0 4px 12px rgba(30,41,59,0.25)' : 'none'
+                  }}
                 >
-                  📋 All Active Jobs ({allActiveJobs.length})
+                  <span>📋 All Active ({allActiveJobs.length})</span>
                 </button>
               </div>
 
-              {/* Job List */}
+              {/* Job List / Empty State */}
               {displayedQueue.length === 0 ? (
-                <div className="card text-center" style={{ padding: '48px 20px', color: 'var(--text-muted)' }}>
-                  <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>
+                <div className="card text-center" style={{ padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: 12, lineHeight: 1 }}>
                     {activeTab === 'assigned' ? '🎉' : '🔍'}
                   </div>
-                  <h3 style={{ marginBottom: 6, color: 'var(--text-dark)' }}>
-                    {activeTab === 'assigned' ? 'No pending jobs assigned to you right now.' : 'No matching jobs in this category.'}
+                  <h3 style={{ marginBottom: 8, fontSize: '1.25rem', color: 'var(--text-dark)', fontWeight: 800 }}>
+                    {activeTab === 'assigned' ? 'No pending jobs assigned to you right now' : 'No matching jobs in this category'}
                   </h3>
-                  <p style={{ fontSize: '0.9rem', maxWidth: 450, margin: '0 auto' }}>
-                    {activeTab === 'assigned' ? 'You have no pending tickets. You can claim open jobs from the queue or wait for admin assignment.' : 'All repairs in this category are completed.'}
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: 460, margin: '0 0 20px', lineHeight: 1.5 }}>
+                    {activeTab === 'assigned' ? 'You have completed all your tickets! You can claim open jobs from the queue or wait for admin assignment.' : 'All repairs in this category are completed.'}
                   </p>
                   {activeTab === 'assigned' && unassignedJobs.length > 0 && (
                     <button 
                       onClick={() => setActiveTab('unassigned')}
                       className="btn btn-primary"
-                      style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                      style={{ height: 44, padding: '0 22px', display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 8, fontWeight: 700 }}
                     >
                       <span>⚡ Claim from {unassignedJobs.length} Unassigned Jobs</span>
                     </button>

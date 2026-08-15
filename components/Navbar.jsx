@@ -57,7 +57,7 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
             {userRole === 'worker' ? (
               <>
                 <li>
-                  <Link href="/worker" className="nav-link" style={{ fontWeight: 700, color: 'var(--primary)' }}>🛠️ Field Portal</Link>
+                  <Link href="/worker" className="nav-link" style={{ color: 'var(--primary)', fontWeight: 700 }}>Field Portal</Link>
                 </li>
                 <li>
                   <Link href="/dashboard" className="nav-link">Customer View</Link>
@@ -82,8 +82,20 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
           </ul>
 
           {userRole === 'worker' ? (
-            <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div className="badge badge-assigned" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}>
+            <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div 
+                className="badge badge-assigned" 
+                style={{ 
+                  height: '38px', 
+                  fontSize: '0.85rem', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: 6, 
+                  fontWeight: 700,
+                  padding: '0 14px',
+                  borderRadius: '20px'
+                }}
+              >
                 <span>{current?.avatar || '👨‍🔧'}</span>
                 <span>{displayName}</span>
               </div>
@@ -91,7 +103,17 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
                 type="button"
                 className={`badge badge-${techStatus === 'Available' ? 'completed' : 'pending'}`} 
                 onClick={() => setTechStatus(techStatus === 'Available' ? 'On Job' : 'Available')}
-                style={{ cursor: 'pointer', border: 'none', padding: '6px 12px', fontWeight: 600 }}
+                style={{ 
+                  height: '38px', 
+                  cursor: 'pointer', 
+                  border: 'none', 
+                  padding: '0 14px', 
+                  fontWeight: 600, 
+                  display: 'inline-flex', 
+                  alignItems: 'center',
+                  borderRadius: '20px',
+                  fontSize: '0.85rem'
+                }}
               >
                 ● {techStatus}
               </button>
@@ -99,7 +121,14 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
                 type="button"
                 onClick={handleLogout} 
                 className="btn btn-outline" 
-                style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                style={{ 
+                  height: '38px', 
+                  padding: '0 16px', 
+                  fontSize: '0.85rem', 
+                  display: 'inline-flex', 
+                  alignItems: 'center',
+                  borderRadius: '8px'
+                }}
               >
                 Logout
               </button>
