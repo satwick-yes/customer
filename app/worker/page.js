@@ -421,12 +421,21 @@ export default function WorkerPortal() {
                   <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>
                     {activeTab === 'assigned' ? '🎉' : '🔍'}
                   </div>
-                  <h3 style={{ marginBottom: 6 }}>
+                  <h3 style={{ marginBottom: 6, color: 'var(--text-dark)' }}>
                     {activeTab === 'assigned' ? 'No pending jobs assigned to you right now.' : 'No matching jobs in this category.'}
                   </h3>
-                  <p style={{ fontSize: '0.9rem' }}>
-                    {activeTab === 'assigned' ? 'Check the "Unassigned / Open" tab to claim a new repair job or wait for admin dispatch.' : 'All repairs are currently taken care of.'}
+                  <p style={{ fontSize: '0.9rem', maxWidth: 450, margin: '0 auto' }}>
+                    {activeTab === 'assigned' ? 'You have no pending tickets. You can claim open jobs from the queue or wait for admin assignment.' : 'All repairs in this category are completed.'}
                   </p>
+                  {activeTab === 'assigned' && unassignedJobs.length > 0 && (
+                    <button 
+                      onClick={() => setActiveTab('unassigned')}
+                      className="btn btn-primary"
+                      style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    >
+                      <span>⚡ Claim from {unassignedJobs.length} Unassigned Jobs</span>
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 14 }}>

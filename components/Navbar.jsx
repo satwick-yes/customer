@@ -17,7 +17,9 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
     };
     window.addEventListener('scroll', handleScroll);
 
-    if (userRole === 'worker' && !activeWorker) {
+    if (workerInfo) {
+      setActiveWorker(workerInfo);
+    } else if (userRole === 'worker') {
       try {
         const saved = localStorage.getItem('coolfix_worker');
         if (saved) {
@@ -28,7 +30,7 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
     }
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [userRole, workerInfo, activeWorker]);
+  }, [userRole, workerInfo]);
 
   const handleLogout = (e) => {
     e.preventDefault();
@@ -38,41 +40,58 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
     router.push('/login');
   };
 
-  const displayName = activeWorker?.name ? `${activeWorker.name.split(' ')[0]} (${activeWorker.techId || activeWorker.id || 'Tech'})` : 'Worker: Tech #101';
+  const current = workerInfo || activeWorker;
+  const displayName = current?.name ? `${current.name.split(' ')[0]} (${current.techId || current.id || 'Tech'})` : 'Worker: Tech';
 
   return (
     <>
       <header className={`glass-header ${scrolled ? 'scrolled' : ''}`}>
         <nav className="container nav-content">
           {/* Logo */}
-          <Link href="/" className="logo font-headline">
+          <Link href={userRole === 'worker' ? '/worker' : '/'} className="logo font-headline">
             Cool<span className="text-primary">Fix</span>
           </Link>
 
           {/* Desktop Nav */}
           <ul className="desktop-links">
-            <li>
-              <Link href="/services" className="nav-link">Services</Link>
-            </li>
-            <li>
-              <Link href="/dashboard" className="nav-link">My Bookings</Link>
-            </li>
-            <li>
-              <Link href="/how-it-works" className="nav-link">How it Works</Link>
-            </li>
+            {userRole === 'worker' ? (
+              <>
+                <li>
+                  <Link href="/worker" className="nav-link" style={{ fontWeight: 700, color: 'var(--primary)' }}>🛠️ Field Portal</Link>
+                </li>
+                <li>
+                  <Link href="/dashboard" className="nav-link">Customer View</Link>
+                </li>
+                <li>
+                  <Link href="/admin" className="nav-link">Admin Dispatch</Link>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link href="/services" className="nav-link">Services</Link>
+                </li>
+                <li>
+                  <Link href="/dashboard" className="nav-link">My Bookings</Link>
+                </li>
+                <li>
+                  <Link href="/how-it-works" className="nav-link">How it Works</Link>
+                </li>
+              </>
+            )}
           </ul>
 
           {userRole === 'worker' ? (
             <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div className="badge badge-assigned" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>👨‍🔧</span>
+              <div className="badge badge-assigned" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}>
+                <span>{current?.avatar || '👨‍🔧'}</span>
                 <span>{displayName}</span>
               </div>
               <button 
                 type="button"
                 className={`badge badge-${techStatus === 'Available' ? 'completed' : 'pending'}`} 
                 onClick={() => setTechStatus(techStatus === 'Available' ? 'On Job' : 'Available')}
-                style={{ cursor: 'pointer', border: 'none', padding: '6px 12px' }}
+                style={{ cursor: 'pointer', border: 'none', padding: '6px 12px', fontWeight: 600 }}
               >
                 ● {techStatus}
               </button>
