@@ -12,8 +12,8 @@ export default function Footer() {
             <div className="footer__logo">❄️ Cool<span>Fix</span></div>
             <p className="footer__tagline">Your trusted home appliance repair partner. Fast, reliable, and affordable.</p>
             <div className="footer__socials">
-              <a href="#" aria-label="Facebook" className="social-icon">f</a>
-              <a href="#" aria-label="Instagram" className="social-icon">ig</a>
+              <a href="https://facebook.com/coolfix" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="social-icon">f</a>
+              <a href="https://instagram.com/coolfix" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="social-icon">ig</a>
             </div>
           </div>
 
@@ -40,7 +40,7 @@ export default function Footer() {
             <h4>Contact</h4>
             <ul>
               <li>📞 +91 8250297411</li>
-              <li>✉️ satwick1234509@gmail.com</li>
+              <li>✉️ support@coolfix.in</li>
               <li>🕐 Mon–Sat, 8AM–8PM</li>
             </ul>
           </div>

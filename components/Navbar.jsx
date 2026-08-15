@@ -84,9 +84,9 @@ export default function Navbar() {
           
           <div className="drawer-divider"></div>
           
-          <button onClick={handleAuthRedirect} className="drawer-link auth-link">
+          <Link href="/login" onClick={() => setMobileOpen(false)} className="drawer-link">
             <span className="material-symbols-outlined">login</span> Login / Staff
-          </button>
+          </Link>
           
           <Link href="/booking" onClick={() => setMobileOpen(false)} className="btn btn-primary" style={{ marginTop: '20px', width: '100%' }}>
             Book Repair

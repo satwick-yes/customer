@@ -49,6 +49,12 @@ export default function AdminPage() {
   }, []);
 
   const updateStatus = async (docId, newStatus) => {
+    if (newStatus === 'Completed') {
+      if (!window.confirm('Are you sure you want to mark this job as Completed? This action is permanent.')) {
+        return;
+      }
+    }
+    
     try {
       const booking = bookings.find(b => b.docId === docId);
       const newHistory = [...booking.statusHistory, { status: newStatus, timestamp: new Date().toISOString() }];
@@ -195,7 +201,7 @@ export default function AdminPage() {
                     {currentData.map((b) => (
                       <tr key={b.docId}>
                         <td className="font-mono text-sm text-muted">{b.jobId}</td>
-                        <td>{new Date(b.createdAt).toLocaleDateString()}</td>
+                        <td>{new Date(b.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                         <td>
                           <div className="font-bold">{b.name}</div>
                           <div className="text-sm text-muted">{b.phone}</div>

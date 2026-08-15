@@ -1,19 +1,31 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export default function Home() {
+  useEffect(() => {
+    // Load Spline viewer dynamically
+    if (!document.querySelector('script[src="https://unpkg.com/@splinetool/viewer@1.9.5/build/spline-viewer.js"]')) {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://unpkg.com/@splinetool/viewer@1.9.5/build/spline-viewer.js';
+      document.head.appendChild(script);
+    }
+  }, []);
   return (
     <>
       <Navbar />
       <main>
         {/* HERO SECTION */}
         <section className="hero-section">
-          {/* Background Image */}
-          <div className="hero-bg" style={{ backgroundImage: 'url(/hero_bg.jpg)' }}></div>
-          <div className="hero-overlay"></div>
+          {/* Background Image / Spline 3D */}
+          <div className="hero-bg" style={{ backgroundColor: '#0f172a', overflow: 'hidden' }}>
+            <spline-viewer url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" style={{ width: '100%', height: '100%' }}></spline-viewer>
+          </div>
+          <div className="hero-overlay" style={{ background: 'linear-gradient(to right, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.7) 50%, rgba(15,23,42,0.2) 100%)' }}></div>
           
           <div className="container hero-content">
             <div className="hero-text-block anim-fade-up">
@@ -132,7 +144,7 @@ export default function Home() {
                 </Link>
                 <div className="service-meta">
                   <h3 className="font-headline">Air Conditioner</h3>
-                  <p>Split & Window AC • Installation • Service</p>
+                  <p>Split & Window AC • Inspection & Basic Servicing</p>
                 </div>
               </div>
 

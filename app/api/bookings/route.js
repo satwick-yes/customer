@@ -23,8 +23,15 @@ export async function POST(request) {
     // Add unique docId and createdAt
     const newDocId = Date.now().toString(36) + Math.random().toString(36).substr(2);
     
+    // Title case the name
+    const formattedName = (data.name || '').replace(
+      /\w\S*/g,
+      text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    );
+    
     const newBooking = {
       ...data,
+      name: formattedName,
       docId: newDocId,
       createdAt: new Date().toISOString()
     };

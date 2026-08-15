@@ -47,7 +47,7 @@ export default function ServicesPage() {
                 price={499}
                 icon="❄️"
                 delay="0.1s"
-                features={['Gas Refilling', 'Deep Cleaning', 'PCB Repair', 'Thermostat Check', '30-Day Service Warranty']}
+                features={['Inspection & Basic Servicing', 'Gas Refilling', 'PCB Repair', 'Thermostat Check', '30-Day Service Warranty']}
               />
               <ServiceCard
                 appliance="Fridge"

@@ -123,7 +123,7 @@ export default function JobSheetStatic({ jobId }) {
       </div>
 
         <div className="jss__footer">
-          <p>📞 +91 8250297411 &nbsp;|&nbsp; satwick1234509@gmail.com</p>
+          <p>📞 +91 8250297411 &nbsp;|&nbsp; support@coolfix.in</p>
           <p>Thank you for choosing CoolFix!</p>
         </div>
 

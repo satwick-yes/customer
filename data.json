@@ -1,119 +1,44 @@
 {
   "bookings": [
     {
-      "jobId": "JOB-MSUAALWZ-QMKH",
-      "name": "satwick shaw",
+      "test": "test_booking"
+    },
+    {
+      "name": "sat",
+      "docId": "msuerpue5jw97g8j74p",
+      "issue": "d",
+      "jobId": "JOB-MSUERQDN-IX1H",
       "phone": "8250297411",
-      "address": "160/21 guru teg bahadur nagar ",
-      "appliance": "AC",
-      "issue": "isisi\n",
       "price": 499,
       "status": "Completed",
+      "address": "160/21 guru teg bahadur nagar ",
+      "feedback": null,
+      "appliance": "AC",
+      "checklist": {
+        "Gas Refill": true,
+        "PCB Repair": true,
+        "Drainage Fix": true,
+        "Filter Cleaning": true,
+        "Compressor Check": true,
+        "Capacitor Replacement": true
+      },
+      "createdAt": "2026-08-15T13:25:08.630Z",
       "statusHistory": [
         {
           "status": "Pending",
-          "timestamp": "2026-08-15T11:19:51.923Z"
+          "timestamp": "2026-08-15T13:25:09.323Z"
+        },
+        {
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-15T13:26:21.227Z"
         },
         {
           "status": "Work in Progress",
-          "timestamp": "2026-08-15T11:34:31.873Z"
-        },
-        {
-          "status": "Technician Assigned",
-          "timestamp": "2026-08-15T11:34:38.035Z"
+          "timestamp": "2026-08-15T13:26:26.224Z"
         },
         {
           "status": "Completed",
-          "timestamp": "2026-08-15T11:34:44.283Z"
-        }
-      ],
-      "feedback": null,
-      "docId": "msuaamfiruxh35hi079",
-      "createdAt": "2026-08-15T11:19:52.590Z"
-    },
-    {
-      "jobId": "JOB-MSUAC7QG-BXG5",
-      "name": "sat",
-      "phone": "8250297411",
-      "address": "160/21 guru teg bahadur nagar ",
-      "appliance": "AC",
-      "issue": "ew",
-      "price": 499,
-      "status": "Completed",
-      "statusHistory": [
-        {
-          "status": "Pending",
-          "timestamp": "2026-08-15T11:21:06.856Z"
-        },
-        {
-          "status": "Technician Assigned",
-          "timestamp": "2026-08-15T11:33:12.427Z"
-        },
-        {
-          "status": "Completed",
-          "timestamp": "2026-08-15T12:06:02.854Z"
-        }
-      ],
-      "feedback": null,
-      "docId": "msuac7r5ufe94kdem",
-      "createdAt": "2026-08-15T11:21:06.881Z"
-    },
-    {
-      "jobId": "JOB-MSUB1P5C-GKVF",
-      "name": "satyyy",
-      "phone": "8250297411",
-      "address": "160/21 guru teg bahadur nagar ",
-      "appliance": "AC",
-      "issue": "dfdfdd",
-      "price": 499,
-      "status": "Completed",
-      "statusHistory": [
-        {
-          "status": "Pending",
-          "timestamp": "2026-08-15T11:40:55.824Z"
-        },
-        {
-          "status": "Completed",
-          "timestamp": "2026-08-15T12:06:01.515Z"
-        }
-      ],
-      "feedback": null,
-      "docId": "msub1p8m1b2hlo13lj4",
-      "createdAt": "2026-08-15T11:40:55.942Z"
-    },
-    {
-      "jobId": "JOB-MSUC2RLU-S7QW",
-      "name": "zxzX",
-      "phone": "8250297411",
-      "address": "160/21 guru teg bahadur nagar ",
-      "appliance": "Fridge",
-      "issue": "xzzzzzzzz",
-      "price": 299,
-      "status": "Pending",
-      "statusHistory": [
-        {
-          "status": "Pending",
-          "timestamp": "2026-08-15T12:09:45.282Z"
-        }
-      ],
-      "feedback": null,
-      "docId": "msuc2rmp9amnxg10gv",
-      "createdAt": "2026-08-15T12:09:45.314Z",
-      "comments": [
-        {
-          "text": "xzczz",
-          "author": "Customer",
-          "timestamp": "2026-08-15T12:13:26.247Z"
-        },
-        {
-          "text": "ss",
-          "author": "Customer",
-          "timestamp": "2026-08-15T12:13:29.096Z"
-        },
-        {
-          "text": "ok sir",
-          "author": "Admin",
-          "timestamp": "2026-08-15T12:16:01.640Z"
+          "timestamp": "2026-08-15T13:26:27.351Z"
         }
       ]
     }
