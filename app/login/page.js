@@ -138,35 +138,6 @@ export default function LoginPage() {
         </div>
       </div>
       <Footer />
-
-      <style jsx>{`
-        .login-page {
-          min-height: 100vh;
-          background: var(--bg-soft);
-          padding: 120px 0 80px;
-        }
-        .login-tabs {
-          display: flex;
-          background: var(--bg-soft);
-          border-radius: var(--radius-full);
-          padding: 4px;
-        }
-        .tab-btn {
-          flex: 1;
-          padding: 10px;
-          border-radius: var(--radius-full);
-          font-weight: 600;
-          font-size: 0.9rem;
-          color: var(--text-muted);
-          background: transparent;
-          transition: var(--transition);
-        }
-        .tab-btn.active {
-          background: white;
-          color: var(--primary);
-          box-shadow: var(--card-shadow);
-        }
-      `}</style>
-    </>
+</>
   );
 }

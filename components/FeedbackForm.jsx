@@ -27,22 +27,7 @@ export default function FeedbackForm({ booking }) {
             {fb.review && <p className="review-text">"{fb.review}"</p>}
           </>
         )}
-        <style jsx>{`
-          .feedback-done {
-            text-align: center;
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-          }
-          .feedback-done h4 { color: var(--text); }
-          .stars-display { display: flex; gap: 4px; }
-          .star-disp { font-size: 1.5rem; color: #E5E7EB; }
-          .star-disp.filled { color: #F59E0B; }
-          .review-text { color: var(--text-muted); font-style: italic; }
-        `}</style>
-      </div>
+</div>
     );
   }
 

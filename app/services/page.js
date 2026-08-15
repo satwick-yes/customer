@@ -25,72 +25,7 @@ function ServiceCard({ appliance, price, icon, features, delay }) {
       <Link href={`/booking?appliance=${appliance}`} className="btn btn-primary svc-card__btn" id={`book-${appliance.toLowerCase()}`}>
         Book {appliance} Service
       </Link>
-      <style jsx>{`
-        .svc-card {
-          background: white;
-          border: 2px solid var(--border);
-          border-radius: var(--radius-xl);
-          padding: 36px 28px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-          gap: 20px;
-          transition: var(--transition);
-          cursor: default;
-          position: relative;
-          overflow: hidden;
-        }
-        .svc-card::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 4px;
-          background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
-        }
-        .svc-card:hover {
-          border-color: var(--primary);
-          box-shadow: 0 20px 60px rgba(227, 30, 36, 0.15);
-          transform: translateY(-8px);
-        }
-        .svc-card__icon-wrap {
-          position: relative;
-          width: 96px; height: 96px;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .svc-card__icon {
-          font-size: 3rem;
-          position: relative;
-          z-index: 1;
-          animation: float 4s ease-in-out infinite;
-        }
-        .svc-card__icon-bg {
-          position: absolute;
-          inset: 0;
-          border-radius: 50%;
-          background: var(--primary-ultra-light);
-          transition: var(--transition);
-        }
-        .svc-card:hover .svc-card__icon-bg {
-          background: linear-gradient(135deg, var(--primary-ultra-light) 0%, rgba(227,30,36,0.12) 100%);
-          transform: scale(1.1);
-        }
-        .svc-card__name { font-size: 1.4rem; font-weight: 700; }
-        .svc-card__price {
-          display: flex;
-          align-items: baseline;
-          gap: 4px;
-          line-height: 1;
-        }
-        .price-symbol { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-        .price-amount { font-size: 3rem; font-weight: 900; color: var(--primary); }
-        .price-note { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; margin-left: 4px; }
-        .svc-card__features { list-style: none; display: flex; flex-direction: column; gap: 8px; text-align: left; width: 100%; }
-        .svc-card__features li { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 500; color: var(--text); }
-        .check { color: var(--primary); font-weight: 700; font-size: 1rem; }
-        .svc-card__btn { width: 100%; justify-content: center; }
-      `}</style>
-    </div>
+</div>
   );
 }
 

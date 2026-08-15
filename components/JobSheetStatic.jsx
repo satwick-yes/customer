@@ -40,17 +40,7 @@ export default function JobSheetStatic({ jobId }) {
       <h3>Job not found</h3>
       <p>The Job ID <strong>{jobId}</strong> does not exist.</p>
       <Link href="/dashboard" className="btn btn-primary">Go to Dashboard</Link>
-      <style jsx>{`
-        .error-state {
-          text-align: center;
-          padding: 80px 20px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 16px;
-        }
-      `}</style>
-    </div>
+</div>
   );
 
   const STATUS_BADGE = {

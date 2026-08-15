@@ -10,52 +10,7 @@ function HowItStep({ step, icon, title, desc, delay }) {
       <div className="how-step__icon">{icon}</div>
       <h3 className="how-step__title">{title}</h3>
       <p className="how-step__desc">{desc}</p>
-      <style jsx>{`
-        .how-step {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-          gap: 16px;
-          position: relative;
-        }
-        .how-step__num {
-          position: absolute;
-          top: -12px; left: 50%;
-          transform: translateX(-50%);
-          width: 28px; height: 28px;
-          background: var(--primary);
-          color: white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.8rem;
-          font-weight: 800;
-          z-index: 1;
-        }
-        .how-step__icon {
-          font-size: 2.5rem;
-          width: 80px; height: 80px;
-          background: white;
-          border: 2px solid var(--border);
-          border-radius: var(--radius-md);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-top: 12px;
-          transition: var(--transition);
-          box-shadow: var(--card-shadow);
-        }
-        .how-step:hover .how-step__icon {
-          border-color: var(--primary);
-          box-shadow: 0 8px 32px rgba(227,30,36,0.15);
-          transform: translateY(-4px);
-        }
-        .how-step__title { font-size: 1.1rem; font-weight: 700; }
-        .how-step__desc { font-size: 0.875rem; color: var(--text-muted); }
-      `}</style>
-    </div>
+</div>
   );
 }
 
