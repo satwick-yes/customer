@@ -79,19 +79,19 @@ export default function LoginPage() {
 
             <div className="login-tabs">
               <button 
-                className={`login-tab ${tab === 'customer' ? 'active' : ''}`}
+                className={`tab-btn ${tab === 'customer' ? 'active' : ''}`}
                 onClick={() => { setTab('customer'); setError(''); setEmail(''); setPassword(''); }}
               >
                 Customer
               </button>
               <button 
-                className={`login-tab ${tab === 'worker' ? 'active' : ''}`}
+                className={`tab-btn ${tab === 'worker' ? 'active' : ''}`}
                 onClick={() => { setTab('worker'); setError(''); setEmail(''); setPassword(''); }}
               >
                 Worker
               </button>
               <button 
-                className={`login-tab ${tab === 'admin' ? 'active' : ''}`}
+                className={`tab-btn ${tab === 'admin' ? 'active' : ''}`}
                 onClick={() => { setTab('admin'); setError(''); setEmail(''); setPassword(''); }}
               >
                 Admin
