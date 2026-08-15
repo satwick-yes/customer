@@ -80,6 +80,29 @@ export default function JobSheet({ booking, onClose }) {
             </span>
           </div>
 
+          {/* OTP display — visible to admin, to be relayed to customer */}
+          {booking.otp && (
+            <div style={{
+              margin: '16px 0',
+              background: 'linear-gradient(135deg, #fef3c7, #fffbeb)',
+              border: '2px dashed #f59e0b',
+              borderRadius: 10,
+              padding: '12px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12
+            }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#92400e', marginBottom: 4 }}>🔐 Job Completion OTP</div>
+                <div style={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 900, letterSpacing: '0.2em', color: '#b45309' }}>{booking.otp}</div>
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#92400e', maxWidth: 120, textAlign: 'right' }}>
+                Share with customer to authorize job completion
+              </div>
+            </div>
+          )}
+
           <div className="sheet__divider" />
 
           {booking.checklist && Object.keys(booking.checklist).length > 0 && (

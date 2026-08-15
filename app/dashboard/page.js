@@ -207,6 +207,27 @@ function DashboardContent() {
               </div>
             </div>
 
+            {/* OTP Card */}
+            {activeBooking.otp && activeBooking.status !== 'Completed' && (
+              <div style={{
+                margin: '8px 0 0',
+                background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+                border: '2px solid #f59e0b',
+                borderRadius: 12,
+                padding: '20px 24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 20,
+              }}>
+                <div style={{ fontSize: '2rem' }}>🔐</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: '#fbbf24', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Your Verification OTP</div>
+                  <div style={{ fontFamily: 'monospace', fontSize: '2.5rem', fontWeight: 900, letterSpacing: '0.3em', color: 'white' }}>{activeBooking.otp}</div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: 4 }}>Give this 4-digit PIN to the technician when the job is finished to confirm completion.</div>
+                </div>
+              </div>
+            )}
+
             {/* Checklist / Repairs */}
             {activeBooking.checklist && Object.keys(activeBooking.checklist).some(k => activeBooking.checklist[k]) && (
               <div className="repairs-section">

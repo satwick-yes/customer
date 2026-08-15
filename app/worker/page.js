@@ -104,13 +104,17 @@ export default function WorkerPortal() {
     if (!booking) return;
     setSubmitting(true);
     try {
+      const newHistory = [
+        ...(booking.statusHistory || []),
+        { status: newStatus, timestamp: new Date().toISOString() }
+      ];
       const res = await fetch(`/api/bookings/${encodeURIComponent(booking.docId)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ status: newStatus, statusHistory: newHistory })
       });
       if (res.ok) {
-        setBooking({ ...booking, status: newStatus });
+        setBooking({ ...booking, status: newStatus, statusHistory: newHistory });
         fetchAssignedJobs();
       } else {
         alert('Failed to update status');
@@ -125,8 +129,8 @@ export default function WorkerPortal() {
   const handleSubmit = async () => {
     if (booking.status === 'Completed') return; 
 
-    if (!otp || otp.length < 4) {
-      setError('Please enter the 4-digit OTP provided by the customer to complete this job.');
+    if (!otp || otp !== booking.otp) {
+      setError('Incorrect OTP. Ask the customer for their 4-digit verification PIN.');
       return;
     }
 
@@ -142,7 +146,11 @@ export default function WorkerPortal() {
           checklist, 
           techNotes, 
           paymentMethod,
-          status: 'Completed' 
+          status: 'Completed',
+          statusHistory: [
+            ...(booking.statusHistory || []),
+            { status: 'Completed', timestamp: new Date().toISOString() }
+          ]
         })
       });
       if (res.ok) {

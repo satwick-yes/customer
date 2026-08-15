@@ -193,6 +193,7 @@ export default function AdminPage() {
                       <th>Date</th>
                       <th>Customer</th>
                       <th>Appliance</th>
+                      <th>OTP</th>
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -207,6 +208,11 @@ export default function AdminPage() {
                           <div className="text-sm text-muted">{b.phone}</div>
                         </td>
                         <td>{b.appliance === 'AC' ? '❄️ AC' : '🧊 Fridge'}</td>
+                        <td>
+                          {b.otp ? (
+                            <span style={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 800, color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: 6 }}>{b.otp}</span>
+                          ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                        </td>
                         <td>
                           <select 
                             value={b.status}
