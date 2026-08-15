@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Navbar({ userRole = 'public' }) {
+export default function Navbar({ userRole = 'public', workerInfo = null }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [techStatus, setTechStatus] = useState('Available');
+  const [activeWorker, setActiveWorker] = useState(workerInfo);
   const router = useRouter();
 
   useEffect(() => {
@@ -15,14 +16,29 @@ export default function Navbar({ userRole = 'public' }) {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
-  const handleAuthRedirect = (e) => {
+    if (userRole === 'worker' && !activeWorker) {
+      try {
+        const saved = localStorage.getItem('coolfix_worker');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setActiveWorker(parsed.tech || parsed);
+        }
+      } catch (e) {}
+    }
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [userRole, workerInfo, activeWorker]);
+
+  const handleLogout = (e) => {
     e.preventDefault();
+    localStorage.removeItem('coolfix_worker');
+    localStorage.removeItem('coolfix_admin');
+    localStorage.removeItem('coolfix_user');
     router.push('/login');
-    setMobileOpen(false);
   };
+
+  const displayName = activeWorker?.name ? `${activeWorker.name.split(' ')[0]} (${activeWorker.techId || activeWorker.id || 'Tech'})` : 'Worker: Tech #101';
 
   return (
     <>
@@ -47,18 +63,27 @@ export default function Navbar({ userRole = 'public' }) {
           </ul>
 
           {userRole === 'worker' ? (
-            <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div className="badge badge-assigned" style={{ fontSize: '0.85rem' }}>Worker: Tech #104</div>
+            <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="badge badge-assigned" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>👨‍🔧</span>
+                <span>{displayName}</span>
+              </div>
               <button 
+                type="button"
                 className={`badge badge-${techStatus === 'Available' ? 'completed' : 'pending'}`} 
                 onClick={() => setTechStatus(techStatus === 'Available' ? 'On Job' : 'Available')}
-                style={{ cursor: 'pointer', border: 'none' }}
+                style={{ cursor: 'pointer', border: 'none', padding: '6px 12px' }}
               >
                 ● {techStatus}
               </button>
-              <Link href="/" className="btn btn-outline" style={{ padding: '6px 12px' }}>
+              <button 
+                type="button"
+                onClick={handleLogout} 
+                className="btn btn-outline" 
+                style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+              >
                 Logout
-              </Link>
+              </button>
             </div>
           ) : (
             <div className="desktop-actions">
@@ -104,21 +129,27 @@ export default function Navbar({ userRole = 'public' }) {
           {userRole === 'worker' ? (
             <>
               <div className="drawer-link" style={{ padding: '12px 24px' }}>
-                <span className="badge badge-assigned">Worker: Tech #104</span>
+                <span className="badge badge-assigned">👨‍🔧 {displayName}</span>
               </div>
               <button 
+                type="button"
                 onClick={() => setTechStatus(techStatus === 'Available' ? 'On Job' : 'Available')} 
                 className="drawer-link" 
-                style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left' }}
+                style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
               >
                 <span className="material-symbols-outlined" style={{ color: techStatus === 'Available' ? '#10B981' : '#F59E0B' }}>
                   {techStatus === 'Available' ? 'check_circle' : 'pending_actions'}
                 </span>
                 Status: {techStatus}
               </button>
-              <Link href="/" onClick={() => setMobileOpen(false)} className="btn btn-outline" style={{ marginTop: '20px', width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <button 
+                type="button"
+                onClick={handleLogout} 
+                className="btn btn-outline" 
+                style={{ marginTop: '20px', width: '100%', display: 'flex', justifyContent: 'center' }}
+              >
                 Logout
-              </Link>
+              </button>
             </>
           ) : (
             <>
@@ -133,6 +164,6 @@ export default function Navbar({ userRole = 'public' }) {
           )}
         </div>
       </div>
-</>
+    </>
   );
 }

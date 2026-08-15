@@ -207,10 +207,50 @@ function DashboardContent() {
               </div>
             </div>
 
+            {/* Assigned Technician Banner */}
+            {activeBooking.assignedTech && (
+              <div style={{
+                margin: '16px 0 0',
+                background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+                border: '1.5px solid #bfdbfe',
+                borderRadius: 12,
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ fontSize: '2.2rem' }}>{activeBooking.assignedTech.avatar || '👨‍🔧'}</div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#1e40af', letterSpacing: '0.05em' }}>
+                      Assigned Master Technician
+                    </div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1e3a8a' }}>
+                      {activeBooking.assignedTech.name} <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3b82f6' }}>({activeBooking.assignedTech.id})</span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                      ⭐ {activeBooking.assignedTech.rating || 4.9} Rating • {activeBooking.assignedTech.specialty || 'CoolFix Certified Pro'}
+                    </div>
+                  </div>
+                </div>
+                {activeBooking.assignedTech.phone && (
+                  <a 
+                    href={`tel:${activeBooking.assignedTech.phone}`}
+                    className="btn btn-primary"
+                    style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    📞 Call Technician
+                  </a>
+                )}
+              </div>
+            )}
+
             {/* OTP Card */}
             {activeBooking.otp && activeBooking.status !== 'Completed' && (
               <div style={{
-                margin: '8px 0 0',
+                margin: '16px 0 0',
                 background: 'linear-gradient(135deg, #1e293b, #0f172a)',
                 border: '2px solid #f59e0b',
                 borderRadius: 12,

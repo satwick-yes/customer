@@ -3,25 +3,28 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { TECHNICIANS } from '@/lib/technicians';
 
 const AC_CHECKLIST = [
-  'Filter Cleaning',
-  'Refrigerant Gas Refill',
-  'Cooling Coil Cleaning',
-  'Compressor Check',
-  'Capacitor Replacement'
+  'Filter Cleaning & Sanitization',
+  'Refrigerant Gas Pressure & Leak Check',
+  'Cooling & Condenser Coil Jet Wash',
+  'Compressor Performance Test',
+  'Capacitor & Electrical Check',
+  'Drainage Pipe Flush & Cleaning'
 ];
 
 const FRIDGE_CHECKLIST = [
-  'Thermostat Testing',
-  'Defrost Heater Check',
-  'Door Gasket Seal',
-  'Compressor Inspection',
-  'Gas Charging'
+  'Thermostat & Temperature Calibration',
+  'Defrost Heater & Timer Testing',
+  'Door Gasket Magnetic Seal Check',
+  'Compressor & Relay Inspection',
+  'Refrigerant Gas Charging',
+  'Internal Fan Motor Check'
 ];
 
 const STATUS_FLOW = [
-  'Assigned',
+  'Technician Assigned',
   'On the Way',
   'Reached Location',
   'Work in Progress',
@@ -29,6 +32,7 @@ const STATUS_FLOW = [
 ];
 
 export default function WorkerPortal() {
+  const [currentTech, setCurrentTech] = useState(TECHNICIANS[0]);
   const [jobId, setJobId] = useState('');
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -37,21 +41,54 @@ export default function WorkerPortal() {
   const [techNotes, setTechNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
-  const [assignedQueue, setAssignedQueue] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
+  const [activeTab, setActiveTab] = useState('assigned'); // 'assigned', 'unassigned', 'all'
   
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [otp, setOtp] = useState('');
 
+  // Load tech profile from storage
   useEffect(() => {
-    fetchAssignedJobs();
+    try {
+      const saved = localStorage.getItem('coolfix_worker');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const matched = TECHNICIANS.find(t => 
+          (parsed.email && t.email.toLowerCase() === parsed.email.toLowerCase()) || 
+          (parsed.techId && t.id === parsed.techId)
+        );
+        if (matched) setCurrentTech(matched);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
-  const fetchAssignedJobs = async () => {
+  const switchTech = (tech) => {
+    setCurrentTech(tech);
+    localStorage.setItem('coolfix_worker', JSON.stringify({ email: tech.email, name: tech.name, role: 'worker', techId: tech.id, tech }));
+    setBooking(null);
+    setError('');
+    setSuccess('');
+  };
+
+  useEffect(() => {
+    fetchBookings();
+    const interval = setInterval(fetchBookings, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchBookings = async () => {
     try {
       const res = await fetch('/api/bookings');
       if (res.ok) {
         const data = await res.json();
-        setAssignedQueue(data.filter(b => b.status !== 'Completed'));
+        setAllBookings(data);
+        // Also refresh currently open booking if any
+        setBooking(prev => {
+          if (!prev) return null;
+          return data.find(b => b.jobId === prev.jobId) || prev;
+        });
       }
     } catch (e) {
       console.error(e);
@@ -73,11 +110,12 @@ export default function WorkerPortal() {
         setBooking(data);
         setChecklist(data.checklist || {});
         setTechNotes(data.techNotes || '');
+        setOtp('');
       } else {
-        setError('Job ID not found.');
+        setError('Job ID not found. Check the ID and try again.');
       }
     } catch (err) {
-      setError('An error occurred.');
+      setError('An error occurred while fetching the job.');
     } finally {
       setLoading(false);
     }
@@ -88,6 +126,7 @@ export default function WorkerPortal() {
     setBooking(job);
     setChecklist(job.checklist || {});
     setTechNotes(job.techNotes || '');
+    setOtp('');
     setError('');
     setSuccess('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -100,22 +139,73 @@ export default function WorkerPortal() {
     }));
   };
 
+  const assignToMyself = async () => {
+    if (!booking) return;
+    setSubmitting(true);
+    try {
+      const newStatus = booking.status === 'Pending' ? 'Technician Assigned' : booking.status;
+      const newHistory = [
+        ...(booking.statusHistory || []),
+        { 
+          status: newStatus, 
+          timestamp: new Date().toISOString(),
+          note: `Claimed by ${currentTech.name} (${currentTech.id})`
+        }
+      ];
+
+      const res = await fetch(`/api/bookings/${encodeURIComponent(booking.docId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          assignedTech: currentTech,
+          status: newStatus,
+          statusHistory: newHistory
+        })
+      });
+
+      if (res.ok) {
+        setBooking(prev => ({ ...prev, assignedTech: currentTech, status: newStatus, statusHistory: newHistory }));
+        fetchBookings();
+      }
+    } catch (e) {
+      alert('Failed to claim job');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const updateStatus = async (newStatus) => {
     if (!booking) return;
     setSubmitting(true);
     try {
       const newHistory = [
         ...(booking.statusHistory || []),
-        { status: newStatus, timestamp: new Date().toISOString() }
+        { 
+          status: newStatus, 
+          timestamp: new Date().toISOString(),
+          note: `Updated by ${currentTech.name}`
+        }
       ];
+      
+      const payload = {
+        status: newStatus,
+        statusHistory: newHistory
+      };
+
+      // If job was unassigned, assign it to current tech automatically
+      if (!booking.assignedTech) {
+        payload.assignedTech = currentTech;
+      }
+
       const res = await fetch(`/api/bookings/${encodeURIComponent(booking.docId)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus, statusHistory: newHistory })
+        body: JSON.stringify(payload)
       });
+
       if (res.ok) {
-        setBooking({ ...booking, status: newStatus, statusHistory: newHistory });
-        fetchAssignedJobs();
+        setBooking(prev => ({ ...prev, ...payload }));
+        fetchBookings();
       } else {
         alert('Failed to update status');
       }
@@ -126,11 +216,12 @@ export default function WorkerPortal() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleCompleteJob = async () => {
     if (booking.status === 'Completed') return; 
 
-    if (!otp || otp !== booking.otp) {
-      setError('Incorrect OTP. Ask the customer for their 4-digit verification PIN.');
+    // Validate OTP strictly
+    if (!otp || otp.trim() !== String(booking.otp || '')) {
+      setError(`Incorrect OTP! Ask customer for their 4-digit verification code.`);
       return;
     }
 
@@ -139,6 +230,15 @@ export default function WorkerPortal() {
     setSuccess('');
 
     try {
+      const newHistory = [
+        ...(booking.statusHistory || []),
+        { 
+          status: 'Completed', 
+          timestamp: new Date().toISOString(),
+          note: `Completed by ${currentTech.name} with OTP verification`
+        }
+      ];
+
       const res = await fetch(`/api/bookings/${encodeURIComponent(booking.docId)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -146,22 +246,28 @@ export default function WorkerPortal() {
           checklist, 
           techNotes, 
           paymentMethod,
+          assignedTech: booking.assignedTech || currentTech,
           status: 'Completed',
-          statusHistory: [
-            ...(booking.statusHistory || []),
-            { status: 'Completed', timestamp: new Date().toISOString() }
-          ]
+          statusHistory: newHistory
         })
       });
+
       if (res.ok) {
-        setSuccess('Job marked as Completed successfully!');
-        setBooking({ ...booking, status: 'Completed' });
-        fetchAssignedJobs(); 
+        setSuccess('🎉 Job successfully verified & marked as Completed!');
+        setBooking(prev => ({ 
+          ...prev, 
+          checklist, 
+          techNotes, 
+          paymentMethod, 
+          status: 'Completed', 
+          statusHistory: newHistory 
+        }));
+        fetchBookings(); 
       } else {
-        throw new Error('Failed to update');
+        throw new Error('Failed to update booking');
       }
     } catch (err) {
-      setError('Could not submit.');
+      setError('Could not complete job. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -173,24 +279,97 @@ export default function WorkerPortal() {
     return `${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
 
+  // Filter queues
+  const myAssignedJobs = allBookings.filter(b => 
+    b.status !== 'Completed' && 
+    (b.assignedTech?.id === currentTech.id || b.assignedTech?.email?.toLowerCase() === currentTech.email.toLowerCase())
+  );
+
+  const unassignedJobs = allBookings.filter(b => 
+    b.status !== 'Completed' && !b.assignedTech
+  );
+
+  const allActiveJobs = allBookings.filter(b => b.status !== 'Completed');
+
+  const displayedQueue = 
+    activeTab === 'assigned' ? myAssignedJobs :
+    activeTab === 'unassigned' ? unassignedJobs :
+    allActiveJobs;
+
   return (
     <>
-      <Navbar userRole="worker" />
+      <Navbar userRole="worker" workerInfo={currentTech} />
       <div className="worker-page">
-        <div className="container" style={{ padding: '40px 16px', maxWidth: '800px', margin: '0 auto' }}>
+        <div className="container" style={{ padding: '30px 16px', maxWidth: '840px', margin: '0 auto' }}>
           
+          {/* Technician Profile Card & Switcher */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+            color: 'white',
+            borderRadius: 14,
+            padding: '20px 24px',
+            marginBottom: 28,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 16,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ fontSize: '2.5rem', background: 'rgba(255,255,255,0.1)', width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12 }}>
+                {currentTech.avatar}
+              </div>
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#93c5fd' }}>
+                  Authenticated Field Technician
+                </div>
+                <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: '2px 0', color: 'white' }}>
+                  {currentTech.name} <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#60a5fa' }}>({currentTech.id})</span>
+                </h2>
+                <div style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>
+                  📞 {currentTech.phone} • {currentTech.specialty}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Switcher */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8' }}>Switch Technician:</label>
+              <select
+                value={currentTech.id}
+                onChange={(e) => {
+                  const t = TECHNICIANS.find(tech => tech.id === e.target.value);
+                  if (t) switchTech(t);
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.12)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  borderRadius: 8,
+                  padding: '6px 12px',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                {TECHNICIANS.map(t => (
+                  <option key={t.id} value={t.id} style={{ color: '#0f172a', background: 'white' }}>
+                    {t.avatar} {t.name} ({t.id})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           {!booking ? (
             <>
-              <div className="worker-header text-center" style={{ marginBottom: 40 }}>
-                <h1>🛠️ Technician Portal</h1>
-                <p className="text-muted">Search for a job or select from your assigned queue.</p>
-              </div>
-
-              <div className="card" style={{ marginBottom: 32 }}>
+              {/* Search Bar */}
+              <div className="card" style={{ marginBottom: 24, padding: 20 }}>
                 <form onSubmit={handleSearch} className="search-box">
                   <input 
                     type="text" 
-                    placeholder="Enter Job ID (e.g., AC-1234)" 
+                    placeholder="Search by Job ID (e.g., AC-12345A)..." 
                     value={jobId}
                     onChange={e => setJobId(e.target.value)}
                     className="form-input"
@@ -203,26 +382,96 @@ export default function WorkerPortal() {
                 {error && <p className="form-error" style={{ marginTop: 12 }}>{error}</p>}
               </div>
 
-              <h3 style={{ marginBottom: 16 }}>Your Assigned Jobs</h3>
-              {assignedQueue.length === 0 ? (
-                <div className="card text-center" style={{ padding: 40, color: 'var(--text-muted)' }}>
-                  No pending jobs assigned.
+              {/* Queue Tabs */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16, borderBottom: '2px solid var(--border)', paddingBottom: 8, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setActiveTab('assigned')}
+                  className={`btn ${activeTab === 'assigned' ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  <span>👨‍🔧 Assigned to Me</span>
+                  <span style={{ background: activeTab === 'assigned' ? 'rgba(255,255,255,0.25)' : 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: 10, fontSize: '0.75rem', fontWeight: 800 }}>
+                    {myAssignedJobs.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('unassigned')}
+                  className={`btn ${activeTab === 'unassigned' ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  <span>⏳ Unassigned / Open</span>
+                  <span style={{ background: activeTab === 'unassigned' ? 'rgba(255,255,255,0.25)' : '#F59E0B', color: 'white', padding: '2px 8px', borderRadius: 10, fontSize: '0.75rem', fontWeight: 800 }}>
+                    {unassignedJobs.length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('all')}
+                  className={`btn ${activeTab === 'all' ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ fontSize: '0.85rem', padding: '8px 16px' }}
+                >
+                  📋 All Active Jobs ({allActiveJobs.length})
+                </button>
+              </div>
+
+              {/* Job List */}
+              {displayedQueue.length === 0 ? (
+                <div className="card text-center" style={{ padding: '48px 20px', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>
+                    {activeTab === 'assigned' ? '🎉' : '🔍'}
+                  </div>
+                  <h3 style={{ marginBottom: 6 }}>
+                    {activeTab === 'assigned' ? 'No pending jobs assigned to you right now.' : 'No matching jobs in this category.'}
+                  </h3>
+                  <p style={{ fontSize: '0.9rem' }}>
+                    {activeTab === 'assigned' ? 'Check the "Unassigned / Open" tab to claim a new repair job or wait for admin dispatch.' : 'All repairs are currently taken care of.'}
+                  </p>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gap: 16 }}>
-                  {assignedQueue.map(job => (
+                <div style={{ display: 'grid', gap: 14 }}>
+                  {displayedQueue.map(job => (
                     <div 
                       key={job.docId} 
                       className="card hover-elevate" 
                       onClick={() => openJob(job)}
-                      style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      style={{ 
+                        cursor: 'pointer', 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        borderLeft: job.assignedTech?.id === currentTech.id ? '4px solid var(--primary)' : '1px solid var(--border)',
+                        padding: '16px 20px'
+                      }}
                     >
                       <div>
-                        <h4 style={{ margin: 0 }}>{job.jobId}</h4>
-                        <div className="text-sm text-muted">{job.name} • {job.appliance}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                          <h4 style={{ margin: 0, fontSize: '1.05rem' }}>{job.jobId}</h4>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            {job.appliance === 'AC' ? '❄️ AC Repair' : '🧊 Fridge Repair'}
+                          </span>
+                        </div>
+                        <div className="text-sm" style={{ color: 'var(--text-dark)' }}>
+                          <strong>{job.name}</strong> • 📞 {job.phone}
+                        </div>
+                        <div className="text-sm text-muted" style={{ marginTop: 2 }}>
+                          📍 {job.address}
+                        </div>
                       </div>
-                      <div className={`badge badge-${job.status === 'Completed' ? 'completed' : 'pending'}`}>
-                        {job.status}
+
+                      <div style={{ textAlign: 'right' }}>
+                        <div className={`badge badge-${job.status === 'Completed' ? 'completed' : job.status === 'Work in Progress' ? 'progress' : 'assigned'}`} style={{ marginBottom: 6 }}>
+                          {job.status}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {job.assignedTech ? (
+                            <span style={{ color: job.assignedTech.id === currentTech.id ? 'var(--primary)' : '#475569', fontWeight: 600 }}>
+                              {job.assignedTech.id === currentTech.id ? '✓ You' : job.assignedTech.name.split(' ')[0]}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#D97706', fontWeight: 600 }}>⚡ Unassigned</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -230,85 +479,147 @@ export default function WorkerPortal() {
               )}
             </>
           ) : (
-            <div className="card anim-fade-up">
+            /* Selected Job Detail View */
+            <div className="card anim-fade-up" style={{ padding: 24 }}>
               <button 
                 onClick={() => setBooking(null)} 
                 className="btn btn-outline" 
-                style={{ padding: '6px 12px', marginBottom: 24, fontSize: '0.85rem' }}
+                style={{ padding: '6px 14px', marginBottom: 20, fontSize: '0.85rem' }}
               >
-                ← Back to Queue
+                ← Back to Jobs Queue
               </button>
 
               <div className="job-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
                 <div>
-                  <h2 style={{ marginBottom: 4, fontSize: '1.5rem' }}>{booking.jobId}</h2>
-                  <div className={`badge badge-${booking.status === 'Completed' ? 'completed' : 'pending'}`} style={{ marginBottom: 8 }}>
-                    {booking.status}
+                  <h2 style={{ marginBottom: 4, fontSize: '1.6rem' }}>{booking.jobId}</h2>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <span className={`badge badge-${booking.status === 'Completed' ? 'completed' : 'assigned'}`}>
+                      {booking.status}
+                    </span>
+                    {booking.assignedTech && (
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        Technician: <strong style={{ color: '#1e40af' }}>{booking.assignedTech.name} ({booking.assignedTech.id})</strong>
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>₹{booking.price || (booking.appliance === 'AC' ? 499 : 299)}</div>
-                  <div className="text-sm text-muted">{booking.appliance} Service</div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--primary)' }}>
+                    ₹{booking.price || (booking.appliance === 'AC' ? 499 : 299)}
+                  </div>
+                  <div className="text-sm text-muted">{booking.appliance} Service & Repair</div>
                 </div>
               </div>
 
+              {/* Claim Job Banner if unassigned */}
+              {(!booking.assignedTech || booking.assignedTech.id !== currentTech.id) && booking.status !== 'Completed' && (
+                <div style={{
+                  margin: '18px 0',
+                  background: '#FFFBEB',
+                  border: '1.5px solid #FDE68A',
+                  borderRadius: 10,
+                  padding: '12px 16px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 10
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 700, color: '#92400E', fontSize: '0.9rem' }}>
+                      {booking.assignedTech ? `Currently assigned to ${booking.assignedTech.name}` : '⚠️ Job is currently unassigned'}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#B45309' }}>
+                      Click to reassign/claim this job under your profile ({currentTech.name}).
+                    </div>
+                  </div>
+                  <button 
+                    onClick={assignToMyself}
+                    disabled={submitting}
+                    className="btn btn-primary"
+                    style={{ padding: '6px 14px', fontSize: '0.85rem' }}
+                  >
+                    ⚡ Claim / Assign to Me
+                  </button>
+                </div>
+              )}
+
               <div className="divider" style={{ margin: '20px 0' }} />
 
-              <div className="customer-details" style={{ background: 'var(--bg-soft)', padding: 16, borderRadius: 8, marginBottom: 24 }}>
-                <h4 style={{ marginBottom: 12 }}>Customer Details</h4>
-                <div style={{ display: 'grid', gap: 12 }}>
+              {/* Customer Details Box */}
+              <div className="customer-details" style={{ background: 'var(--bg-soft)', padding: 18, borderRadius: 10, marginBottom: 24, border: '1px solid var(--border)' }}>
+                <h4 style={{ marginBottom: 14, fontSize: '1rem', color: 'var(--text-dark)' }}>Customer & Location Info</h4>
+                <div style={{ display: 'grid', gap: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <span className="material-symbols-outlined text-primary">person</span>
-                    <strong>{booking.name}</strong>
+                    <div>
+                      <strong>{booking.name}</strong>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Issue: {booking.issue}</div>
+                    </div>
                   </div>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <span className="material-symbols-outlined text-primary">phone</span>
-                    <a href={`tel:${booking.phone}`} style={{ flex: 1, color: 'var(--text-dark)', textDecoration: 'none' }}>{booking.phone}</a>
-                    <a href={`tel:${booking.phone}`} className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Call</a>
+                    <a href={`tel:${booking.phone}`} style={{ flex: 1, color: 'var(--text-dark)', textDecoration: 'none', fontWeight: 600 }}>{booking.phone}</a>
+                    <a href={`tel:${booking.phone}`} className="btn btn-primary" style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      📞 Call Customer
+                    </a>
                   </div>
                   
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                    <span className="material-symbols-outlined text-primary">location_on</span>
-                    <div style={{ flex: 1 }}>{booking.address}</div>
+                    <span className="material-symbols-outlined text-primary" style={{ marginTop: 2 }}>location_on</span>
+                    <div style={{ flex: 1, color: 'var(--text-dark)' }}>{booking.address}</div>
                     <a 
                       href={`https://maps.google.com/?q=${encodeURIComponent(booking.address)}`} 
                       target="_blank" 
                       rel="noreferrer"
                       className="btn btn-outline"
-                      style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                      style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 4 }}
                     >
-                      Map
+                      📍 Open Maps
                     </a>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <span className="material-symbols-outlined text-primary">schedule</span>
-                    <span>{getScheduleTime(booking.createdAt)}</span>
+                    <span>Scheduled Slot: <strong>{getScheduleTime(booking.createdAt)}</strong></span>
                   </div>
                 </div>
               </div>
 
-              <h4 style={{ marginBottom: 12 }}>Real-Time Status</h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+              {/* Real-time Status Buttons */}
+              <h4 style={{ marginBottom: 12 }}>Real-Time Live Status Workflow</h4>
+              <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: 14 }}>
+                Advance your progress live. The customer tracking dashboard and Admin table update automatically.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 26 }}>
                 {STATUS_FLOW.map(s => {
                   const isCurrent = booking.status === s;
-                  if (s === 'Completed') return null; 
+                  if (s === 'Completed') return null; // handled with OTP gate
                   return (
                     <button 
                       key={s}
                       onClick={() => updateStatus(s)}
-                      disabled={isCurrent || booking.status === 'Completed'}
+                      disabled={isCurrent || booking.status === 'Completed' || submitting}
                       className={`btn ${isCurrent ? 'btn-primary' : 'btn-outline'}`}
-                      style={{ flex: '1 1 auto', fontSize: '0.85rem' }}
+                      style={{ 
+                        flex: '1 1 auto', 
+                        fontSize: '0.85rem',
+                        padding: '10px 14px',
+                        fontWeight: isCurrent ? 700 : 500
+                      }}
                     >
-                      {s}
+                      {isCurrent ? `✓ ${s}` : s}
                     </button>
                   );
                 })}
               </div>
 
-              <h4 style={{ marginBottom: 12 }}>Diagnostic Checklist</h4>
+              {/* Diagnostic Checklist */}
+              <h4 style={{ marginBottom: 8 }}>Diagnostic & Repair Checklist</h4>
+              <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: 14 }}>
+                Select all tests, cleaning, and replacement tasks executed during this visit.
+              </p>
               <div className="checklist-grid" style={{ marginBottom: 24 }}>
                 {(booking.appliance === 'AC' ? AC_CHECKLIST : FRIDGE_CHECKLIST).map((item, idx) => (
                   <label key={idx} className={`check-item ${checklist[item] ? 'checked' : ''}`}>
@@ -323,62 +634,78 @@ export default function WorkerPortal() {
                 ))}
               </div>
 
-              <h4 style={{ marginBottom: 12 }}>Technician Notes</h4>
+              {/* Technician Remarks / Notes */}
+              <h4 style={{ marginBottom: 8 }}>Technician Field Remarks</h4>
               <textarea 
                 className="form-input" 
                 rows={3} 
-                placeholder="E.g., Replaced 35uF capacitor..."
+                placeholder="E.g., Cleared clogged drain, replaced 35uF capacitor, gas pressure optimal at 65 PSI."
                 value={techNotes}
                 onChange={e => setTechNotes(e.target.value)}
                 disabled={booking.status === 'Completed'}
                 style={{ width: '100%', marginBottom: 24, resize: 'vertical' }}
               />
 
-              {booking.status !== 'Completed' && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16, marginBottom: 24 }}>
-                  <h4 style={{ marginBottom: 16 }}>Payment & Completion</h4>
+              {/* Payment & OTP Completion Gate */}
+              {booking.status !== 'Completed' ? (
+                <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+                  <h4 style={{ marginBottom: 6, color: '#0f172a' }}>💰 Payment & Secure OTP Verification</h4>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 16 }}>
+                    Collect the payment and ask the customer for their 4-digit verification code to seal the repair.
+                  </p>
                   
-                  <div className="form-group" style={{ marginBottom: 16 }}>
-                    <label className="form-label">Payment Method</label>
-                    <select 
-                      className="form-input" 
-                      value={paymentMethod} 
-                      onChange={e => setPaymentMethod(e.target.value)}
-                    >
-                      <option value="Cash">Cash</option>
-                      <option value="UPI">UPI / QR Code</option>
-                    </select>
-                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontWeight: 600 }}>Payment Method</label>
+                      <select 
+                        className="form-input" 
+                        value={paymentMethod} 
+                        onChange={e => setPaymentMethod(e.target.value)}
+                      >
+                        <option value="Cash">💵 Cash Collection (₹{booking.price})</option>
+                        <option value="UPI">📱 UPI / QR Scan (₹{booking.price})</option>
+                      </select>
+                    </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Customer OTP Verification</label>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontWeight: 600 }}>Customer 4-Digit OTP</label>
                       <input 
                         type="text" 
                         maxLength={4}
-                        placeholder="1234"
+                        placeholder="••••"
                         className="form-input" 
                         value={otp}
-                        onChange={e => setOtp(e.target.value)}
-                        style={{ letterSpacing: '8px', fontSize: '1.2rem', textAlign: 'center' }}
+                        onChange={e => { setOtp(e.target.value); setError(''); }}
+                        style={{ letterSpacing: '8px', fontSize: '1.3rem', textAlign: 'center', fontWeight: 800, fontFamily: 'monospace' }}
                       />
                     </div>
-                    <p className="text-sm text-muted" style={{ marginTop: 4 }}>Ask the customer for the 4-digit PIN.</p>
                   </div>
+
+                  <p className="text-sm text-muted" style={{ margin: '0 0 12px' }}>
+                    💡 Customer can view their OTP live on their booking tracking screen.
+                  </p>
+
+                  {error && <p className="form-error" style={{ marginBottom: 16 }}>⚠️ {error}</p>}
+                  {success && <p className="form-success" style={{ marginBottom: 16, color: '#059669', fontWeight: 600 }}>✅ {success}</p>}
+
+                  <button 
+                    onClick={handleCompleteJob} 
+                    className="btn btn-primary" 
+                    style={{ width: '100%', justifyContent: 'center', height: 52, fontSize: '1.05rem', fontWeight: 700 }}
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Verifying & Completing...' : 'Verify OTP & Complete Job'}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ background: '#ecfdf5', border: '1.5px solid #a7f3d0', borderRadius: 12, padding: 20, marginBottom: 24, textAlign: 'center' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: 6 }}>✅</div>
+                  <h3 style={{ color: '#065f46', marginBottom: 4 }}>Job Completed & Verified</h3>
+                  <p style={{ color: '#047857', fontSize: '0.9rem', margin: 0 }}>
+                    Payment ({paymentMethod || 'Cash'}) and diagnosis notes have been securely recorded in the backend.
+                  </p>
                 </div>
               )}
-
-              {error && <p className="form-error" style={{ marginBottom: 16 }}>{error}</p>}
-              {success && <p className="form-success" style={{ marginBottom: 16, color: '#059669', fontWeight: 600 }}>✅ {success}</p>}
-
-              <button 
-                onClick={handleSubmit} 
-                className="btn btn-primary" 
-                style={{ width: '100%', justifyContent: 'center', height: 56, fontSize: '1.1rem' }}
-                disabled={submitting || booking.status === 'Completed'}
-              >
-                {booking.status === 'Completed' ? 'Job Completed' : 'Complete Job'}
-              </button>
             </div>
           )}
         </div>

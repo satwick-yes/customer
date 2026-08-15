@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import JobSheet from '@/components/JobSheet';
+import { TECHNICIANS } from '@/lib/technicians';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -16,6 +17,7 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [applianceFilter, setApplianceFilter] = useState('All');
+  const [techFilter, setTechFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
 
   const fetchBookings = async () => {
@@ -43,10 +45,48 @@ export default function AdminPage() {
     // Real-time polling
     const interval = setInterval(() => {
       fetchBookings();
-    }, 5000);
+    }, 4000);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const assignTechnician = async (docId, techId) => {
+    const booking = bookings.find(b => b.docId === docId);
+    if (!booking) return;
+
+    const tech = TECHNICIANS.find(t => t.id === techId) || null;
+    const newStatus = tech ? (booking.status === 'Pending' ? 'Technician Assigned' : booking.status) : 'Pending';
+    const newHistory = [
+      ...(booking.statusHistory || []),
+      { 
+        status: newStatus, 
+        timestamp: new Date().toISOString(),
+        note: tech ? `Assigned to ${tech.name} (${tech.id})` : 'Unassigned technician'
+      }
+    ];
+
+    // Optimistic update
+    setBookings(prev => prev.map(b => b.docId === docId ? { 
+      ...b, 
+      assignedTech: tech, 
+      status: newStatus, 
+      statusHistory: newHistory 
+    } : b));
+
+    try {
+      await fetch(`/api/bookings/${encodeURIComponent(docId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          assignedTech: tech, 
+          status: newStatus, 
+          statusHistory: newHistory 
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const updateStatus = async (docId, newStatus) => {
     if (newStatus === 'Completed') {
@@ -57,7 +97,7 @@ export default function AdminPage() {
     
     try {
       const booking = bookings.find(b => b.docId === docId);
-      const newHistory = [...booking.statusHistory, { status: newStatus, timestamp: new Date().toISOString() }];
+      const newHistory = [...(booking.statusHistory || []), { status: newStatus, timestamp: new Date().toISOString() }];
       
       // Optimistic update
       setBookings(prev => prev.map(b => b.docId === docId ? { ...b, status: newStatus, statusHistory: newHistory } : b));
@@ -67,7 +107,6 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus, statusHistory: newHistory }),
       });
-      // fetchBookings will catch any missed updates shortly
     } catch (err) {
       console.error(err);
     }
@@ -77,6 +116,8 @@ export default function AdminPage() {
     const map = {
       'Pending': 'badge-pending',
       'Technician Assigned': 'badge-assigned',
+      'On the Way': 'badge-progress',
+      'Reached Location': 'badge-progress',
       'Work in Progress': 'badge-progress',
       'Completed': 'badge-completed'
     };
@@ -89,6 +130,7 @@ export default function AdminPage() {
 
   const totalToday = bookings.filter(b => new Date(b.createdAt) >= todayStart).length;
   const pendingCount = bookings.filter(b => b.status === 'Pending').length;
+  const assignedCount = bookings.filter(b => b.assignedTech && b.status !== 'Completed').length;
   const totalRevenue = bookings
     .filter(b => b.status === 'Completed')
     .reduce((sum, b) => sum + (b.price || 0), 0);
@@ -98,18 +140,23 @@ export default function AdminPage() {
     const matchesSearch = 
       (b.jobId && b.jobId.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (b.name && b.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (b.phone && b.phone.includes(searchQuery));
+      (b.phone && b.phone.includes(searchQuery)) ||
+      (b.assignedTech?.name && b.assignedTech.name.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesStatus = statusFilter === 'All' || b.status === statusFilter;
     const matchesAppliance = applianceFilter === 'All' || b.appliance === applianceFilter;
+    const matchesTech = 
+      techFilter === 'All' ? true :
+      techFilter === 'Unassigned' ? !b.assignedTech :
+      b.assignedTech?.id === techFilter;
 
-    return matchesSearch && matchesStatus && matchesAppliance;
+    return matchesSearch && matchesStatus && matchesAppliance && matchesTech;
   });
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, applianceFilter]);
+  }, [searchQuery, statusFilter, applianceFilter, techFilter]);
 
   // --- Pagination ---
   const totalPages = Math.ceil(filteredBookings.length / ITEMS_PER_PAGE);
@@ -123,7 +170,7 @@ export default function AdminPage() {
           <div className="admin-header">
             <div>
               <h1>Admin Portal</h1>
-              <p style={{ color: 'var(--text-muted)' }}>Manage jobs, track performance, and assign technicians.</p>
+              <p style={{ color: 'var(--text-muted)' }}>Manage jobs, track performance, and dispatch 5 master technicians in real-time.</p>
             </div>
             <div className="live-indicator">
               <span className="rt-dot"></span> Live Updates
@@ -138,12 +185,17 @@ export default function AdminPage() {
               <div className="ac-icon">📅</div>
             </div>
             <div className="analytic-card">
-              <div className="ac-title">Pending Assignments</div>
+              <div className="ac-title">Active Dispatched</div>
+              <div className="ac-value">{assignedCount}</div>
+              <div className="ac-icon" style={{ background: '#E0E7FF', color: '#4338CA' }}>👨‍🔧</div>
+            </div>
+            <div className="analytic-card">
+              <div className="ac-title">Pending Assignment</div>
               <div className="ac-value">{pendingCount}</div>
               <div className="ac-icon" style={{ background: '#FEF3C7', color: '#D97706' }}>⏳</div>
             </div>
             <div className="analytic-card">
-              <div className="ac-title">Total Revenue (Completed)</div>
+              <div className="ac-title">Total Revenue</div>
               <div className="ac-value">₹{totalRevenue.toLocaleString()}</div>
               <div className="ac-icon" style={{ background: '#D1FAE5', color: '#059669' }}>📈</div>
             </div>
@@ -155,16 +207,26 @@ export default function AdminPage() {
               <span>🔍</span>
               <input 
                 type="text" 
-                placeholder="Search by Job ID, Name, or Phone..."
+                placeholder="Search by Job ID, Name, Phone, or Technician..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="filter-selects">
+              <select value={techFilter} onChange={e => setTechFilter(e.target.value)} className="form-input">
+                <option value="All">All Technicians</option>
+                <option value="Unassigned">⚠️ Unassigned Only</option>
+                {TECHNICIANS.map(t => (
+                  <option key={t.id} value={t.id}>{t.avatar} {t.name} ({t.id})</option>
+                ))}
+              </select>
+
               <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="form-input">
                 <option value="All">All Statuses</option>
                 <option value="Pending">Pending</option>
                 <option value="Technician Assigned">Technician Assigned</option>
+                <option value="On the Way">On the Way</option>
+                <option value="Reached Location">Reached Location</option>
                 <option value="Work in Progress">Work in Progress</option>
                 <option value="Completed">Completed</option>
               </select>
@@ -193,6 +255,7 @@ export default function AdminPage() {
                       <th>Date</th>
                       <th>Customer</th>
                       <th>Appliance</th>
+                      <th>Assigned Technician</th>
                       <th>OTP</th>
                       <th>Status</th>
                       <th>Actions</th>
@@ -201,7 +264,7 @@ export default function AdminPage() {
                   <tbody>
                     {currentData.map((b) => (
                       <tr key={b.docId}>
-                        <td className="font-mono text-sm text-muted">{b.jobId}</td>
+                        <td className="font-mono text-sm text-muted"><strong>{b.jobId}</strong></td>
                         <td>{new Date(b.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                         <td>
                           <div className="font-bold">{b.name}</div>
@@ -209,8 +272,31 @@ export default function AdminPage() {
                         </td>
                         <td>{b.appliance === 'AC' ? '❄️ AC' : '🧊 Fridge'}</td>
                         <td>
+                          <select 
+                            value={b.assignedTech?.id || ''}
+                            onChange={(e) => assignTechnician(b.docId, e.target.value)}
+                            className="form-input"
+                            style={{
+                              fontSize: '0.85rem',
+                              padding: '6px 10px',
+                              background: b.assignedTech ? '#EFF6FF' : '#FFFBEB',
+                              borderColor: b.assignedTech ? '#3B82F6' : '#F59E0B',
+                              fontWeight: b.assignedTech ? 600 : 400,
+                              color: b.assignedTech ? '#1E40AF' : '#92400E',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="">⚡ Assign Tech...</option>
+                            {TECHNICIANS.map(t => (
+                              <option key={t.id} value={t.id}>
+                                {t.avatar} {t.name} ({t.id})
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
                           {b.otp ? (
-                            <span style={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 800, color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: 6 }}>{b.otp}</span>
+                            <span style={{ fontFamily: 'monospace', fontSize: '1.05rem', fontWeight: 800, color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: 6 }}>{b.otp}</span>
                           ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
                         </td>
                         <td>
@@ -222,6 +308,8 @@ export default function AdminPage() {
                           >
                             <option value="Pending">Pending</option>
                             <option value="Technician Assigned">Technician Assigned</option>
+                            <option value="On the Way">On the Way</option>
+                            <option value="Reached Location">Reached Location</option>
                             <option value="Work in Progress">Work in Progress</option>
                             <option value="Completed">Completed</option>
                           </select>
@@ -281,10 +369,13 @@ export default function AdminPage() {
         <JobSheet
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
+          onAssignTech={(techId) => {
+            assignTechnician(selectedBooking.docId, techId);
+          }}
         />
       )}
 
       <Footer />
-</>
+    </>
   );
 }

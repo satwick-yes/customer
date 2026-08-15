@@ -1,9 +1,8 @@
-'use client';
-
 import { useEffect, useRef } from 'react';
 import BookingComments from './BookingComments';
+import { TECHNICIANS } from '@/lib/technicians';
 
-export default function JobSheet({ booking, onClose }) {
+export default function JobSheet({ booking, onClose, onAssignTech }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -47,6 +46,53 @@ export default function JobSheet({ booking, onClose }) {
               <span className="sheet__key">Address</span>
               <span className="sheet__val">{booking.address}</span>
             </div>
+          </div>
+
+          <div className="sheet__divider" />
+
+          {/* Assigned Technician Section */}
+          <div className="sheet__section">
+            <div className="sheet__row" style={{ alignItems: 'center' }}>
+              <span className="sheet__key">Assigned Technician</span>
+              <span className="sheet__val">
+                {onAssignTech ? (
+                  <select
+                    value={booking.assignedTech?.id || ''}
+                    onChange={(e) => onAssignTech(e.target.value)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      border: '1px solid #3B82F6',
+                      background: '#EFF6FF',
+                      color: '#1E40AF',
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="">⚡ Select Technician...</option>
+                    {TECHNICIANS.map(t => (
+                      <option key={t.id} value={t.id}>
+                        {t.avatar} {t.name} ({t.id} - {t.phone})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  booking.assignedTech ? (
+                    <strong style={{ color: '#1E40AF' }}>
+                      {booking.assignedTech.name} ({booking.assignedTech.id}) - {booking.assignedTech.phone}
+                    </strong>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>Pending assignment</span>
+                  )
+                )}
+              </span>
+            </div>
+            {booking.assignedTech && (
+              <div style={{ marginTop: 6, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Specialty: {booking.assignedTech.specialty || 'Cooling Expert'} | Email: {booking.assignedTech.email}
+              </div>
+            )}
           </div>
 
           <div className="sheet__divider" />
