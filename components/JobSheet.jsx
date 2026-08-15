@@ -82,6 +82,22 @@ export default function JobSheet({ booking, onClose }) {
 
           <div className="sheet__divider" />
 
+          {booking.checklist && Object.keys(booking.checklist).length > 0 && (
+            <>
+              <div className="sheet__section" style={{ marginTop: '12px' }}>
+                <div className="sheet__key" style={{ marginBottom: '12px' }}>✅ Technician Diagnosis & Repairs</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {Object.entries(booking.checklist).map(([item, checked], i) => checked && (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text)' }}>
+                      <span style={{ color: '#10B981' }}>✔️</span> {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="sheet__divider" />
+            </>
+          )}
+
           <div className="sheet__row" style={{ marginTop: '12px' }}>
             <span className="sheet__key">Feedback / Rating</span>
             <span className="sheet__val">

@@ -207,6 +207,21 @@ function DashboardContent() {
               </div>
             </div>
 
+            {/* Checklist / Repairs */}
+            {activeBooking.checklist && Object.keys(activeBooking.checklist).some(k => activeBooking.checklist[k]) && (
+              <div className="repairs-section">
+                <h3 className="section-title">🔧 Repairs in Progress</h3>
+                <div className="repairs-list">
+                  {Object.entries(activeBooking.checklist).map(([item, checked], i) => checked && (
+                    <div key={i} className="repair-item">
+                      <span className="repair-icon">✓</span>
+                      <span className="repair-text">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Timeline */}
             <div className="timeline-section">
               <h3 className="section-title">Service Progress</h3>
@@ -389,6 +404,11 @@ function DashboardContent() {
         .price-val { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
 
         .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 20px; }
+        .repairs-section { padding: 28px; border-bottom: 1px solid var(--border); background: var(--bg-soft); }
+        .repairs-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .repair-item { display: flex; align-items: center; gap: 8px; }
+        .repair-icon { color: #10B981; font-weight: bold; background: #D1FAE5; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem; }
+        .repair-text { font-size: 0.95rem; font-weight: 500; }
         .timeline-section { padding: 28px; border-bottom: 1px solid var(--border); }
         .history-section { padding: 28px; border-bottom: 1px solid var(--border); }
         .comments-section { padding: 28px; border-bottom: 1px solid var(--border); }

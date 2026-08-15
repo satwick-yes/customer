@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { supabase } from '@/lib/supabase';
 
-const dataFile = path.join(process.cwd(), 'users.json');
+async function readUsers() {
+  try {
+    const { data, error } = await supabase
+      .from('json_store')
+      .select('data')
+      .eq('id', 'users.json')
+      .single();
 
-function readUsers() {
-  if (!fs.existsSync(dataFile)) {
-    fs.writeFileSync(dataFile, JSON.stringify({ users: [] }, null, 2));
+    if (error || !data) return { users: [] };
+    return data.data;
+  } catch (err) {
+    return { users: [] };
   }
-  const raw = fs.readFileSync(dataFile, 'utf8');
-  return JSON.parse(raw);
 }
 
-function writeUsers(data) {
-  fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
+async function writeUsers(newData) {
+  await supabase
+    .from('json_store')
+    .upsert({ id: 'users.json', data: newData });
 }
 
 export async function POST(request) {
@@ -24,7 +30,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const data = readUsers();
+    const data = await readUsers();
     
     // Check if user exists
     let user = data.users.find(u => u.email === email);
@@ -39,7 +45,7 @@ export async function POST(request) {
       // Auto-signup
       const newUser = { email, password, createdAt: new Date().toISOString() };
       data.users.push(newUser);
-      writeUsers(data);
+      await writeUsers(data);
       return NextResponse.json({ message: 'Account created and logged in', user: { email } }, { status: 201 });
     }
   } catch (error) {

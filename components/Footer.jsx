@@ -54,7 +54,7 @@ export default function Footer() {
 
       <style jsx>{`
         .footer {
-          background: var(--bg-dark);
+          background: #18181B;
           color: rgba(255,255,255,0.8);
           padding: 64px 0 24px;
           margin-top: 80px;
@@ -89,7 +89,7 @@ export default function Footer() {
           justify-content: center;
           font-size: 0.75rem;
           font-weight: 700;
-          transition: var(--transition);
+          transition: all 0.3s;
           text-transform: uppercase;
         }
         .social-icon:hover {
@@ -113,7 +113,7 @@ export default function Footer() {
         .footer__col ul li, .footer__col ul li a {
           font-size: 0.9rem;
           color: rgba(255,255,255,0.55);
-          transition: var(--transition);
+          transition: color 0.3s;
         }
         .footer__col ul li a:hover { color: var(--primary-light); }
         .footer__bottom {

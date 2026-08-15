@@ -28,6 +28,15 @@ export default function LoginPage() {
           setLoading(false);
         }
       }, 600);
+    } else if (tab === 'worker') {
+      setTimeout(() => {
+        if (password === 'worker123') {
+          router.push('/worker');
+        } else {
+          setError('Invalid worker credentials.');
+          setLoading(false);
+        }
+      }, 600);
     } else {
       // Customer Login
       try {
@@ -40,7 +49,6 @@ export default function LoginPage() {
         const data = await res.json();
 
         if (res.ok) {
-          // Redirect to dashboard on success
           router.push('/dashboard');
         } else {
           setError(data.error || 'Something went wrong');
@@ -60,24 +68,30 @@ export default function LoginPage() {
         <div className="container" style={{ display: 'flex', justifyContent: 'center', paddingTop: '60px' }}>
           <div className="form-card anim-scale-in" style={{ width: '100%', maxWidth: '440px' }}>
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ fontSize: '3rem', marginBottom: 8 }}>{tab === 'admin' ? '🔒' : '👤'}</div>
+              <div style={{ fontSize: '3rem', marginBottom: 8 }}>{tab === 'admin' ? '🔒' : tab === 'worker' ? '🛠️' : '👤'}</div>
               <h1 className="form-card__title">
-                {tab === 'admin' ? 'Admin Login' : 'Customer Login'}
+                {tab === 'admin' ? 'Admin Login' : tab === 'worker' ? 'Worker Login' : 'Customer Login'}
               </h1>
               <p className="form-card__sub" style={{ marginTop: 8 }}>
-                {tab === 'admin' ? 'Enter credentials to manage bookings.' : 'Log in or auto-register to track your repairs.'}
+                {tab === 'admin' ? 'Enter credentials to manage bookings.' : tab === 'worker' ? 'Log in to view assigned tasks.' : 'Log in or auto-register to track your repairs.'}
               </p>
             </div>
 
             <div className="login-tabs">
               <button 
-                className={`tab-btn ${tab === 'customer' ? 'active' : ''}`}
+                className={`login-tab ${tab === 'customer' ? 'active' : ''}`}
                 onClick={() => { setTab('customer'); setError(''); setEmail(''); setPassword(''); }}
               >
                 Customer
               </button>
               <button 
-                className={`tab-btn ${tab === 'admin' ? 'active' : ''}`}
+                className={`login-tab ${tab === 'worker' ? 'active' : ''}`}
+                onClick={() => { setTab('worker'); setError(''); setEmail(''); setPassword(''); }}
+              >
+                Worker
+              </button>
+              <button 
+                className={`login-tab ${tab === 'admin' ? 'active' : ''}`}
                 onClick={() => { setTab('admin'); setError(''); setEmail(''); setPassword(''); }}
               >
                 Admin
@@ -90,11 +104,11 @@ export default function LoginPage() {
                 <input 
                   type="email" 
                   className="form-input" 
-                  placeholder={tab === 'admin' ? "admin@coolfix.com" : "you@example.com"}
-                  value={tab === 'admin' ? "admin@coolfix.com" : email}
+                  placeholder={tab !== 'customer' ? "staff@coolfix.com" : "you@example.com"}
+                  value={tab !== 'customer' ? "staff@coolfix.com" : email}
                   onChange={(e) => setEmail(e.target.value)}
-                  readOnly={tab === 'admin'}
-                  style={tab === 'admin' ? { background: 'var(--bg-soft)', color: 'var(--text-light)' } : {}}
+                  readOnly={tab !== 'customer'}
+                  style={tab !== 'customer' ? { background: 'var(--bg-soft)', color: 'var(--text-light)' } : {}}
                   required
                 />
               </div>
@@ -108,8 +122,10 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  autoFocus={tab === 'admin'}
                 />
+                {tab === 'customer' && <p style={{ fontSize: '0.8rem', marginTop: 5 }}>New here? We'll create an account for you automatically.</p>}
+                {tab === 'worker' && <p style={{ fontSize: '0.8rem', marginTop: 5 }}>Authorized technicians only.</p>}
+                {tab === 'admin' && <p style={{ fontSize: '0.8rem', marginTop: 5 }}>Authorized personnel only.</p>}
               </div>
 
               {error && <p className="form-error">⚠️ {error}</p>}

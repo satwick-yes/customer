@@ -4,7 +4,7 @@ import { readDb, writeDb } from '@/lib/localDb';
 export async function GET(request, { params }) {
   const { id } = await params;
   
-  const db = readDb();
+  const db = await readDb();
   const booking = db.bookings.find(b => b.jobId === id);
   
   if (booking) {
@@ -19,7 +19,7 @@ export async function PATCH(request, { params }) {
     const { id } = await params;
     const updates = await request.json();
     
-    const db = readDb();
+    const db = await readDb();
     const index = db.bookings.findIndex(b => b.docId === id);
     
     if (index === -1) {
@@ -28,7 +28,7 @@ export async function PATCH(request, { params }) {
     
     // Update the booking
     db.bookings[index] = { ...db.bookings[index], ...updates };
-    writeDb(db);
+    await writeDb(db);
     
     return NextResponse.json(db.bookings[index]);
   } catch (error) {

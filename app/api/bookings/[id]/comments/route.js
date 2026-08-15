@@ -10,7 +10,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Comment text is required' }, { status: 400 });
     }
 
-    const data = readDb();
+    const data = await readDb();
     const idx = data.bookings.findIndex(b => b.jobId === id);
 
     
@@ -29,7 +29,7 @@ export async function POST(request, { params }) {
     }
     
     data.bookings[idx].comments.push(newComment);
-    writeDb(data);
+    await writeDb(data);
     
     return NextResponse.json({ message: 'Comment added', comment: newComment }, { status: 200 });
   } catch (err) {

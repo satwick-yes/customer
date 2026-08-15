@@ -1,224 +1,232 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
-
-  const isAdmin = pathname.startsWith('/admin');
-  const isLogin = pathname.startsWith('/login');
-
-  const customerLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'Services', href: '/services' },
-    { label: 'How It Works', href: '/how-it-works' },
-    { label: 'Track Booking', href: '/dashboard' },
-    { label: 'Login', href: '/login' },
-  ];
-
-  const adminLinks = [
-    { label: 'Dashboard', href: '/admin' },
-    { label: 'Logout', href: '/' },
-  ];
-
-  const loginLinks = [
-    { label: 'Home', href: '/' }
-  ];
-
-  let navLinks = customerLinks;
-  if (isAdmin) navLinks = adminLinks;
-  if (isLogin) navLinks = loginLinks;
+  const handleAuthRedirect = (e) => {
+    e.preventDefault();
+    router.push('/login');
+    setMobileOpen(false);
+  };
 
   return (
     <>
-      <nav className={`navbar${scrolled ? ' navbar--scrolled' : ''}`}>
-        <div className="container navbar__inner">
-          <Link href="/" className="navbar__logo">
-            <span className="navbar__logo-icon">❄️</span>
-            <span className="navbar__logo-text">
-              Cool<span className="text-red">Fix</span>
-            </span>
+      <header className={`glass-header ${scrolled ? 'scrolled' : ''}`}>
+        <nav className="container nav-content">
+          {/* Logo */}
+          <Link href="/" className="logo font-headline">
+            Cool<span className="text-primary">Fix</span>
           </Link>
 
-          <ul className="navbar__links hide-mobile">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={`navbar__link${pathname === link.href ? ' navbar__link--active' : ''}`}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+          {/* Desktop Nav */}
+          <ul className="desktop-links">
+            <li>
+              <Link href="/services" className="nav-link">Services</Link>
+            </li>
+            <li>
+              <Link href="/dashboard" className="nav-link">My Bookings</Link>
+            </li>
+            <li>
+              <Link href="/how-it-works" className="nav-link">How it Works</Link>
+            </li>
           </ul>
 
-          <div className="navbar__actions">
-            {(!isAdmin && !isLogin) && (
-              <Link href="/booking" className="btn btn-primary hide-mobile">
-                Book Now
-              </Link>
-            )}
-            <button
-              className="navbar__hamburger hide-desktop"
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Toggle menu"
-              id="menu-toggle"
-            >
-              <span className={`hamburger__line${menuOpen ? ' open' : ''}`} />
-              <span className={`hamburger__line${menuOpen ? ' open' : ''}`} />
-              <span className={`hamburger__line${menuOpen ? ' open' : ''}`} />
-            </button>
+          <div className="desktop-actions">
+            <Link href="/login" className="login-link">Login</Link>
+            <Link href="/booking" className="btn btn-primary">
+              <span className="material-symbols-outlined icon-filled">calendar_add_on</span>
+              Book Repair
+            </Link>
           </div>
-        </div>
-      </nav>
 
-      {/* Mobile Menu */}
-      <div className={`mobile-menu${menuOpen ? ' mobile-menu--open' : ''}`}>
-        <ul className="mobile-menu__links">
-          {navLinks.map((link, i) => (
-            <li key={link.href} style={{ animationDelay: `${i * 0.06}s` }}>
-              <Link href={link.href} className="mobile-menu__link">
-                {link.label}
-              </Link>
-            </li>
-          ))}
-          {(!isAdmin && !isLogin) && (
-            <li style={{ animationDelay: '0.24s' }}>
-              <Link href="/booking" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                Book Now
-              </Link>
-            </li>
-          )}
-        </ul>
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="mobile-toggle" 
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle Menu"
+          >
+            <span className="material-symbols-outlined">
+              {mobileOpen ? 'close' : 'menu'}
+            </span>
+          </button>
+        </nav>
+      </header>
+
+      {/* Mobile Drawer */}
+      <div className={`mobile-drawer ${mobileOpen ? 'open' : ''}`}>
+        <div className="drawer-content">
+          <Link href="/" onClick={() => setMobileOpen(false)} className="drawer-link">
+            <span className="material-symbols-outlined icon-filled text-primary">home</span> Home
+          </Link>
+          <Link href="/services" onClick={() => setMobileOpen(false)} className="drawer-link">
+            <span className="material-symbols-outlined">handyman</span> Services
+          </Link>
+          <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="drawer-link">
+            <span className="material-symbols-outlined">event_note</span> My Bookings
+          </Link>
+          <Link href="/how-it-works" onClick={() => setMobileOpen(false)} className="drawer-link">
+            <span className="material-symbols-outlined">help</span> How it Works
+          </Link>
+          
+          <div className="drawer-divider"></div>
+          
+          <button onClick={handleAuthRedirect} className="drawer-link auth-link">
+            <span className="material-symbols-outlined">login</span> Login / Staff
+          </button>
+          
+          <Link href="/booking" onClick={() => setMobileOpen(false)} className="btn btn-primary" style={{ marginTop: '20px', width: '100%' }}>
+            Book Repair
+          </Link>
+        </div>
       </div>
 
       <style jsx>{`
-        .navbar {
+        .glass-header {
+          padding: 20px 0;
+          transition: all 0.3s ease;
+        }
+        .glass-header.scrolled {
+          padding: 12px 0;
+          background: rgba(255, 255, 255, 0.95);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .nav-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .logo {
+          font-size: 1.8rem;
+          font-weight: 900;
+          text-decoration: none;
+          color: var(--text);
+          letter-spacing: -0.05em;
+        }
+        
+        .desktop-links {
+          display: none;
+          list-style: none;
+          gap: 32px;
+        }
+        .nav-link {
+          text-decoration: none;
+          color: var(--text-muted);
+          font-family: 'Inter', sans-serif;
+          font-weight: 600;
+          font-size: 0.95rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          transition: color 0.2s;
+          position: relative;
+        }
+        .nav-link:hover {
+          color: var(--text);
+        }
+        .nav-link::after {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          width: 0%;
+          height: 2px;
+          background: var(--primary);
+          transition: width 0.3s;
+          border-radius: 2px;
+        }
+        .nav-link:hover::after {
+          width: 100%;
+        }
+
+        .desktop-actions {
+          display: none;
+          align-items: center;
+          gap: 20px;
+        }
+        .login-link {
+          font-weight: 700;
+          text-decoration: none;
+          color: var(--text);
+          font-family: 'Outfit', sans-serif;
+        }
+        .login-link:hover {
+          color: var(--primary);
+        }
+
+        .mobile-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          color: var(--text);
+          cursor: pointer;
+          padding: 8px;
+        }
+
+        /* Mobile Drawer */
+        .mobile-drawer {
           position: fixed;
           top: 0;
-          left: 0;
+          right: -100%;
+          width: 80%;
+          max-width: 400px;
+          height: 100vh;
+          background: white;
+          z-index: 999;
+          box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+          transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          padding-top: 80px;
+        }
+        .mobile-drawer.open {
           right: 0;
-          z-index: 1000;
-          height: var(--nav-height);
-          background: rgba(255,255,255,0.8);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border-bottom: 1px solid transparent;
-          transition: var(--transition);
         }
-        .navbar--scrolled {
-          background: rgba(255,255,255,0.97);
-          border-bottom-color: var(--border);
-          box-shadow: 0 4px 24px rgba(227, 30, 36, 0.06);
-        }
-        .navbar__inner {
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .navbar__logo {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 1.5rem;
-          font-weight: 800;
-          color: var(--text);
-        }
-        .navbar__logo-icon { font-size: 1.4rem; }
-        .navbar__links {
-          display: flex;
-          list-style: none;
-          gap: 24px;
-        }
-        .navbar__link {
-          padding: 8px 16px;
-          border-radius: var(--radius-full);
-          font-weight: 500;
-          color: var(--text);
-          transition: var(--transition);
-          font-size: 0.95rem;
-        }
-        .navbar__link:hover,
-        .navbar__link--active {
-          color: var(--primary);
-          background: var(--primary-ultra-light);
-        }
-        .navbar__actions { display: flex; align-items: center; gap: 12px; }
-        .navbar__hamburger {
+        .drawer-content {
           display: flex;
           flex-direction: column;
-          gap: 5px;
-          padding: 8px;
+          padding: 24px;
+        }
+        .drawer-link {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px 0;
+          text-decoration: none;
+          color: var(--text);
+          font-weight: 600;
+          font-size: 1.1rem;
+        }
+        .drawer-divider {
+          height: 1px;
+          background: var(--border);
+          margin: 16px 0;
+        }
+        .auth-link {
           background: none;
           border: none;
           cursor: pointer;
+          font-family: inherit;
+          text-align: left;
         }
-        .hamburger__line {
-          display: block;
-          width: 24px;
-          height: 2px;
-          background: var(--text);
-          border-radius: 2px;
-          transition: var(--transition);
-          transform-origin: center;
-        }
-        .hamburger__line:nth-child(1).open { transform: translateY(7px) rotate(45deg); }
-        .hamburger__line:nth-child(2).open { opacity: 0; }
-        .hamburger__line:nth-child(3).open { transform: translateY(-7px) rotate(-45deg); }
 
-        .mobile-menu {
-          position: fixed;
-          top: var(--nav-height);
-          left: 0;
-          right: 0;
-          background: white;
-          z-index: 999;
-          padding: 16px;
-          border-bottom: 1px solid var(--border);
-          transform: translateY(-10px);
-          opacity: 0;
-          pointer-events: none;
-          transition: all 0.25s ease;
-          box-shadow: 0 8px 32px rgba(227, 30, 36, 0.1);
-        }
-        .mobile-menu--open {
-          transform: translateY(0);
-          opacity: 1;
-          pointer-events: all;
-        }
-        .mobile-menu__links {
-          list-style: none;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .mobile-menu__link {
-          display: block;
-          padding: 14px 16px;
-          font-weight: 500;
-          color: var(--text);
-          border-radius: var(--radius-md);
-          transition: var(--transition);
-        }
-        .mobile-menu__link:hover {
-          background: var(--primary-ultra-light);
-          color: var(--primary);
+        @media (min-width: 768px) {
+          .desktop-links { display: flex; }
+          .desktop-actions { display: flex; }
+          .mobile-toggle { display: none; }
+          .mobile-drawer { display: none; }
         }
       `}</style>
     </>
