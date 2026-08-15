@@ -59,6 +59,23 @@ body {
   font-variation-settings: 'FILL' 1;
 }
 
+/* Hide Spline 3D Watermark / Logo */
+spline-viewer::part(logo) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+spline-viewer #logo,
+spline-viewer a#logo,
+spline-viewer a[href*="spline.design"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Typography Classes */
 .font-headline {
   font-family: 'Outfit', sans-serif;

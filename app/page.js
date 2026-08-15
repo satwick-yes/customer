@@ -14,6 +14,44 @@ export default function Home() {
       script.src = 'https://unpkg.com/@splinetool/viewer@1.9.5/build/spline-viewer.js';
       document.head.appendChild(script);
     }
+
+    // Permanently remove "Built with Spline" watermark from shadow DOM
+    const removeSplineLogo = () => {
+      const viewer = document.querySelector('spline-viewer');
+      if (viewer && viewer.shadowRoot) {
+        // Inject style into shadow root
+        if (!viewer.shadowRoot.querySelector('#hide-spline-logo-style')) {
+          const style = document.createElement('style');
+          style.id = 'hide-spline-logo-style';
+          style.textContent = `
+            #logo, a#logo, a[href*="spline.design"], .spline-watermark {
+              display: none !important;
+              opacity: 0 !important;
+              visibility: hidden !important;
+              pointer-events: none !important;
+              transform: scale(0) !important;
+            }
+          `;
+          viewer.shadowRoot.appendChild(style);
+        }
+
+        const logo = viewer.shadowRoot.querySelector('#logo') || viewer.shadowRoot.querySelector('a[href*="spline.design"]');
+        if (logo) {
+          logo.style.display = 'none';
+          logo.style.opacity = '0';
+          logo.style.visibility = 'hidden';
+          logo.remove();
+        }
+      }
+    };
+
+    const interval = setInterval(removeSplineLogo, 100);
+    const timeout = setTimeout(() => clearInterval(interval), 15000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, []);
   return (
     <>
