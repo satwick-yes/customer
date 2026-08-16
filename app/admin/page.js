@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import JobSheet from '@/components/JobSheet';
@@ -14,12 +14,28 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
+  // Real-time notification & live activity state
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [activeToast, setActiveToast] = useState(null);
+  const prevBookingsRef = useRef(null);
+
   // Filters & Pagination state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [applianceFilter, setApplianceFilter] = useState('All');
   const [techFilter, setTechFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Auto-dismiss toast after 6s
+  useEffect(() => {
+    if (activeToast) {
+      const timer = setTimeout(() => {
+        setActiveToast(null);
+      }, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeToast]);
 
   const fetchBookings = async () => {
     try {
@@ -28,6 +44,86 @@ export default function AdminPage() {
         const data = await res.json();
         // Sort by newest first
         const sorted = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        // Real-time field event detection
+        if (prevBookingsRef.current) {
+          const prevMap = new Map(prevBookingsRef.current.map(b => [b.jobId, b]));
+          const newEvents = [];
+
+          sorted.forEach(curr => {
+            const prev = prevMap.get(curr.jobId);
+            if (prev) {
+              // 1. Technician Claimed / Assigned
+              if (!prev.assignedTech && curr.assignedTech) {
+                newEvents.push({
+                  id: Date.now() + Math.random(),
+                  type: 'claim',
+                  icon: '⚡',
+                  title: 'Job Claimed by Technician',
+                  message: `👨‍🔧 ${curr.assignedTech.name} (${curr.assignedTech.id}) claimed Job ${curr.jobId}`,
+                  time: new Date(),
+                  job: curr
+                });
+              } else if (prev.assignedTech?.id !== curr.assignedTech?.id && curr.assignedTech) {
+                newEvents.push({
+                  id: Date.now() + Math.random(),
+                  type: 'reassign',
+                  icon: '👨‍🔧',
+                  title: 'Technician Assigned',
+                  message: `Job ${curr.jobId} assigned to ${curr.assignedTech.name} (${curr.assignedTech.id})`,
+                  time: new Date(),
+                  job: curr
+                });
+              }
+
+              // 2. Status Changed
+              if (prev.status !== curr.status) {
+                newEvents.push({
+                  id: Date.now() + Math.random(),
+                  type: 'status',
+                  icon: curr.status === 'On the Way' ? '🛵' : curr.status === 'Reached Location' ? '📍' : curr.status === 'Completed' ? '🎉' : '🔧',
+                  title: `Status: ${curr.status}`,
+                  message: `Job ${curr.jobId} updated to "${curr.status}" by ${curr.assignedTech?.name || 'Technician'}`,
+                  time: new Date(),
+                  job: curr
+                });
+              }
+
+              // 3. Checklist Progress Changed
+              const prevCheckCount = prev.checklist ? Object.values(prev.checklist).filter(Boolean).length : 0;
+              const currCheckCount = curr.checklist ? Object.values(curr.checklist).filter(Boolean).length : 0;
+              if (currCheckCount > prevCheckCount) {
+                newEvents.push({
+                  id: Date.now() + Math.random(),
+                  type: 'checklist',
+                  icon: '✅',
+                  title: 'Checklist Progress',
+                  message: `Diagnostic & repair tasks completed (${currCheckCount} checks) on ${curr.jobId}`,
+                  time: new Date(),
+                  job: curr
+                });
+              }
+            } else {
+              // Brand new booking created
+              newEvents.push({
+                id: Date.now() + Math.random(),
+                type: 'new_booking',
+                icon: '📋',
+                title: 'New Booking Received',
+                message: `New ${curr.appliance} service booking ${curr.jobId} for ${curr.name}`,
+                time: new Date(),
+                job: curr
+              });
+            }
+          });
+
+          if (newEvents.length > 0) {
+            setNotifications(prev => [...newEvents, ...prev].slice(0, 30));
+            setActiveToast(newEvents[0]);
+          }
+        }
+
+        prevBookingsRef.current = sorted;
         setBookings(sorted);
         setSelectedBooking(prev => {
           if (!prev) return null;
@@ -198,7 +294,115 @@ export default function AdminPage() {
               <h1>Admin Portal</h1>
               <p style={{ color: 'var(--text-muted)' }}>Manage jobs, track performance, and dispatch 5 master technicians in real-time.</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
+              {/* Notification Bell with Dropdown */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="btn btn-outline"
+                  style={{
+                    background: 'white',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '8px 14px',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    position: 'relative'
+                  }}
+                  title="Real-Time Field Notifications"
+                >
+                  <span>🔔</span> Notifications
+                  {notifications.length > 0 && (
+                    <span style={{
+                      background: 'var(--primary)',
+                      color: 'white',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      padding: '2px 6px',
+                      borderRadius: '10px',
+                      marginLeft: 2
+                    }}>
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+
+                {showNotifications && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 8px)',
+                    right: 0,
+                    width: '340px',
+                    maxHeight: '400px',
+                    background: 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.18)',
+                    border: '1px solid var(--border)',
+                    zIndex: 999,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <div style={{
+                      padding: '12px 16px',
+                      background: 'var(--bg-soft)',
+                      borderBottom: '1px solid var(--border)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <strong style={{ fontSize: '0.88rem' }}>🔔 Live Activity Feed</strong>
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={() => setNotifications([])}
+                          style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ overflowY: 'auto', maxHeight: '320px', padding: '6px 0' }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                          No recent activity. Live field technician events will pop up here!
+                        </div>
+                      ) : (
+                        notifications.map((n) => (
+                          <div
+                            key={n.id}
+                            onClick={() => {
+                              if (n.job) {
+                                setSelectedBooking(n.job);
+                                setShowNotifications(false);
+                              }
+                            }}
+                            style={{
+                              padding: '10px 16px',
+                              borderBottom: '1px solid #f1f5f9',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              gap: 10,
+                              alignItems: 'flex-start',
+                              transition: 'background 0.2s'
+                            }}
+                          >
+                            <span style={{ fontSize: '1.2rem', marginTop: 2 }}>{n.icon}</span>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-dark)' }}>{n.title}</div>
+                              <div style={{ fontSize: '0.78rem', color: 'var(--text)', marginTop: 2 }}>{n.message}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 3 }}>
+                                {new Date(n.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button 
                 onClick={downloadAllCompleted}
                 className="btn btn-outline"
@@ -424,6 +628,53 @@ export default function AdminPage() {
             assignTechnician(selectedBooking.docId, techId);
           }}
         />
+      )}
+
+      {/* Real-time Field Notification Toast */}
+      {activeToast && (
+        <div 
+          className="anim-fade-up" 
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            background: '#0F172A',
+            color: 'white',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.3)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            maxWidth: '420px',
+            border: '1.5px solid rgba(255,255,255,0.2)'
+          }}
+        >
+          <div style={{ fontSize: '1.8rem', flexShrink: 0 }}>{activeToast.icon}</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#93C5FD' }}>{activeToast.title}</div>
+            <div style={{ fontSize: '0.82rem', color: '#E2E8F0', marginTop: 2 }}>{activeToast.message}</div>
+          </div>
+          {activeToast.job && (
+            <button
+              onClick={() => {
+                setSelectedBooking(activeToast.job);
+                setActiveToast(null);
+              }}
+              className="btn btn-primary"
+              style={{ padding: '6px 12px', fontSize: '0.78rem', flexShrink: 0 }}
+            >
+              View Job
+            </button>
+          )}
+          <button
+            onClick={() => setActiveToast(null)}
+            style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '1.1rem', cursor: 'pointer', padding: 4 }}
+          >
+            ✕
+          </button>
+        </div>
       )}
 
       <Footer />

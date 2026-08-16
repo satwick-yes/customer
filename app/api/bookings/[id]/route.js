@@ -5,7 +5,7 @@ export async function GET(request, { params }) {
   const { id } = await params;
   
   const db = await readDb();
-  const booking = db.bookings.find(b => b.jobId === id);
+  const booking = db.bookings.find(b => b.jobId === id || b.docId === id);
   
   if (booking) {
     return NextResponse.json(booking);
@@ -20,7 +20,7 @@ export async function PATCH(request, { params }) {
     const updates = await request.json();
     
     const db = await readDb();
-    const index = db.bookings.findIndex(b => b.docId === id);
+    const index = db.bookings.findIndex(b => b.docId === id || b.jobId === id);
     
     if (index === -1) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 });

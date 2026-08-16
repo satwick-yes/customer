@@ -184,8 +184,11 @@ export default function WorkerPortal() {
   const assignToMyself = async () => {
     if (!booking) return;
     setSubmitting(true);
+    setError('');
+    setSuccess('');
     try {
       const newStatus = booking.status === 'Pending' ? 'Technician Assigned' : booking.status;
+      const targetId = booking.docId || booking.jobId;
       const newHistory = [
         ...(booking.statusHistory || []),
         { 
@@ -195,7 +198,7 @@ export default function WorkerPortal() {
         }
       ];
 
-      const res = await fetch(`/api/bookings/${encodeURIComponent(booking.docId)}`, {
+      const res = await fetch(`/api/bookings/${encodeURIComponent(targetId)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -206,11 +209,22 @@ export default function WorkerPortal() {
       });
 
       if (res.ok) {
-        setBooking(prev => ({ ...prev, assignedTech: currentTech, status: newStatus, statusHistory: newHistory }));
+        const updated = await res.json();
+        setBooking(prev => ({ 
+          ...prev, 
+          ...updated,
+          assignedTech: currentTech, 
+          status: newStatus, 
+          statusHistory: newHistory 
+        }));
+        setSuccess(`⚡ Job ${booking.jobId} successfully claimed & assigned to you (${currentTech.name})!`);
         fetchBookings();
+      } else {
+        setError('Failed to claim job. Please try again.');
       }
     } catch (e) {
-      alert('Failed to claim job');
+      console.error(e);
+      setError('Failed to claim job');
     } finally {
       setSubmitting(false);
     }
@@ -219,13 +233,15 @@ export default function WorkerPortal() {
   const updateStatus = async (newStatus) => {
     if (!booking) return;
     setSubmitting(true);
+    setError('');
     try {
+      const targetId = booking.docId || booking.jobId;
       const newHistory = [
         ...(booking.statusHistory || []),
         { 
           status: newStatus, 
           timestamp: new Date().toISOString(),
-          note: `Updated by ${currentTech.name}`
+          note: `Updated to "${newStatus}" by ${currentTech.name}`
         }
       ];
       
@@ -603,10 +619,46 @@ export default function WorkerPortal() {
               <button 
                 onClick={() => setBooking(null)} 
                 className="btn btn-outline" 
-                style={{ padding: '6px 14px', marginBottom: 20, fontSize: '0.85rem' }}
+                style={{ padding: '6px 14px', marginBottom: 16, fontSize: '0.85rem' }}
               >
                 ← Back to Jobs Queue
               </button>
+
+              {success && (
+                <div style={{
+                  background: '#ECFDF5',
+                  border: '1.5px solid #10B981',
+                  color: '#065F46',
+                  borderRadius: 10,
+                  padding: '12px 16px',
+                  marginBottom: 18,
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8
+                }} className="anim-fade-in">
+                  <span>🎉</span> {success}
+                </div>
+              )}
+
+              {error && (
+                <div style={{
+                  background: '#FEF2F2',
+                  border: '1.5px solid #EF4444',
+                  color: '#991B1B',
+                  borderRadius: 10,
+                  padding: '12px 16px',
+                  marginBottom: 18,
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8
+                }} className="anim-fade-in">
+                  <span>⚠️</span> {error}
+                </div>
+              )}
 
               <div className="job-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
                 <div>
