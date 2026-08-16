@@ -71,22 +71,22 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <main>
+      <main style={{ background: '#FFFFFF', color: '#18181B' }}>
         {/* Frame-by-Frame Scroll Sequence Hero */}
         <FrameSequenceHero />
 
         {/* SECTION 2: THE COOLFIX RED & WHITE STANDARD */}
-        <section className="difference-section carbon-texture" style={{ padding: '80px 0', background: '#09090B', color: 'white' }}>
+        <section className="difference-section" style={{ padding: '80px 0', background: '#FFFFFF', borderTop: '2px solid #FEE2E2', borderBottom: '1px solid #F4F4F5' }}>
           <div className="container">
             <div className="section-header text-center" style={{ marginBottom: 48 }}>
               <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                background: 'rgba(220, 38, 38, 0.18)',
-                border: '1px solid #DC2626',
-                color: '#F87171',
-                padding: '6px 16px',
+                background: '#FEF2F2',
+                border: '1.5px solid #FEE2E2',
+                color: '#DC2626',
+                padding: '6px 18px',
                 borderRadius: 30,
                 fontSize: '0.82rem',
                 fontWeight: 800,
@@ -96,41 +96,41 @@ export default function Home() {
               }}>
                 ✦ Why 12,000+ neighbors choose us
               </div>
-              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 900, color: 'white' }}>
-                The <span style={{ color: '#EF4444' }}>CoolFix</span> Master Standard
+              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 900, color: '#0F172A' }}>
+                The <span style={{ color: '#DC2626' }}>CoolFix</span> Master Standard
               </h2>
             </div>
 
             <div className="diff-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
-              <div className="diff-card" style={{ background: '#18181B', border: '1.5px solid #27272A', borderRadius: 16, padding: '32px 24px' }}>
-                <div className="diff-icon-wrap" style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#EF4444', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <div className="diff-card" style={{ background: '#FFFFFF', border: '2px solid #FEE2E2', borderRadius: 18, padding: '32px 24px', boxShadow: '0 4px 20px rgba(220, 38, 38, 0.05)' }}>
+                <div className="diff-icon-wrap" style={{ background: '#FEF2F2', color: '#DC2626', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <span className="material-symbols-outlined icon-filled" style={{ fontSize: '32px' }}>verified_user</span>
                 </div>
                 <span className="diff-number" style={{ color: '#DC2626', fontWeight: 900, fontSize: '1.2rem', fontFamily: 'monospace' }}>01</span>
-                <h3 className="font-headline" style={{ color: 'white', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>Background-Verified Pros</h3>
-                <p style={{ color: '#A1A1AA', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                <h3 className="font-headline" style={{ color: '#0F172A', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>Background-Verified Pros</h3>
+                <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6 }}>
                   Every technician is certified, background-checked, and brings 6 to 10+ years of technical field expertise in AC & refrigeration.
                 </p>
               </div>
 
-              <div className="diff-card" style={{ background: '#18181B', border: '1.5px solid #27272A', borderRadius: 16, padding: '32px 24px' }}>
-                <div className="diff-icon-wrap" style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#EF4444', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <div className="diff-card" style={{ background: '#FFFFFF', border: '2px solid #FEE2E2', borderRadius: 18, padding: '32px 24px', boxShadow: '0 4px 20px rgba(220, 38, 38, 0.05)' }}>
+                <div className="diff-icon-wrap" style={{ background: '#FEF2F2', color: '#DC2626', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <span className="material-symbols-outlined icon-filled" style={{ fontSize: '32px' }}>security</span>
                 </div>
                 <span className="diff-number" style={{ color: '#DC2626', fontWeight: 900, fontSize: '1.2rem', fontFamily: 'monospace' }}>02</span>
-                <h3 className="font-headline" style={{ color: 'white', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>Digital Quote Approval</h3>
-                <p style={{ color: '#A1A1AA', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                <h3 className="font-headline" style={{ color: '#0F172A', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>Digital Quote Approval</h3>
+                <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6 }}>
                   Zero surprise bills. Review itemized spare parts quotes directly on your screen and approve with one tap before work begins.
                 </p>
               </div>
 
-              <div className="diff-card" style={{ background: '#18181B', border: '1.5px solid #27272A', borderRadius: 16, padding: '32px 24px' }}>
-                <div className="diff-icon-wrap" style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#EF4444', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <div className="diff-card" style={{ background: '#FFFFFF', border: '2px solid #FEE2E2', borderRadius: 18, padding: '32px 24px', boxShadow: '0 4px 20px rgba(220, 38, 38, 0.05)' }}>
+                <div className="diff-icon-wrap" style={{ background: '#FEF2F2', color: '#DC2626', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <span className="material-symbols-outlined icon-filled" style={{ fontSize: '32px' }}>workspace_premium</span>
                 </div>
                 <span className="diff-number" style={{ color: '#DC2626', fontWeight: 900, fontSize: '1.2rem', fontFamily: 'monospace' }}>03</span>
-                <h3 className="font-headline" style={{ color: 'white', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>60-Day Master Warranty</h3>
-                <p style={{ color: '#A1A1AA', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                <h3 className="font-headline" style={{ color: '#0F172A', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>60-Day Master Warranty</h3>
+                <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.6 }}>
                   Complete peace of mind with 60-day service warranty and 30-day parts protection on all completed repairs.
                 </p>
               </div>
@@ -139,7 +139,7 @@ export default function Home() {
         </section>
 
         {/* SECTION 3: SERVICES CATALOG IN CRISP WHITE & BOLD RED */}
-        <section id="services" className="services-section" style={{ padding: '80px 0', background: '#FFFFFF' }}>
+        <section id="services" className="services-section" style={{ padding: '80px 0', background: '#FAFAFA' }}>
           <div className="container">
             <div className="section-header text-center" style={{ marginBottom: 48 }}>
               <div style={{
@@ -147,9 +147,9 @@ export default function Home() {
                 alignItems: 'center',
                 gap: 6,
                 background: '#FEF2F2',
-                border: '1px solid #FEE2E2',
+                border: '1.5px solid #FEE2E2',
                 color: '#DC2626',
-                padding: '6px 16px',
+                padding: '6px 18px',
                 borderRadius: 30,
                 fontSize: '0.82rem',
                 fontWeight: 800,
@@ -173,7 +173,7 @@ export default function Home() {
                   height: '320px',
                   borderRadius: 20,
                   overflow: 'hidden',
-                  boxShadow: '0 12px 32px rgba(220, 38, 38, 0.15)',
+                  boxShadow: '0 12px 32px rgba(220, 38, 38, 0.12)',
                   border: '2px solid #FEE2E2'
                 }}>
                   <div className="service-img" style={{
@@ -233,7 +233,7 @@ export default function Home() {
                   height: '320px',
                   borderRadius: 20,
                   overflow: 'hidden',
-                  boxShadow: '0 12px 32px rgba(220, 38, 38, 0.15)',
+                  boxShadow: '0 12px 32px rgba(220, 38, 38, 0.12)',
                   border: '2px solid #FEE2E2'
                 }}>
                   <div className="service-img" style={{
@@ -289,7 +289,7 @@ export default function Home() {
         </section>
 
         {/* SECTION 4: MEET OUR MASTER TECHNICIANS */}
-        <section style={{ padding: '80px 16px', background: '#FAFAFA', borderTop: '1px solid #E4E4E7', borderBottom: '1px solid #E4E4E7' }}>
+        <section style={{ padding: '80px 16px', background: '#FFFFFF', borderTop: '1px solid #E4E4E7', borderBottom: '1px solid #E4E4E7' }}>
           <div className="container" style={{ maxWidth: '1100px' }}>
             <div className="section-header text-center" style={{ marginBottom: 40 }}>
               <div style={{
@@ -297,9 +297,9 @@ export default function Home() {
                 alignItems: 'center',
                 gap: 6,
                 background: '#FEF2F2',
-                border: '1px solid #FEE2E2',
+                border: '1.5px solid #FEE2E2',
                 color: '#DC2626',
-                padding: '6px 16px',
+                padding: '6px 18px',
                 borderRadius: 30,
                 fontSize: '0.82rem',
                 fontWeight: 800,
@@ -322,12 +322,12 @@ export default function Home() {
                 <div 
                   key={tech.id}
                   style={{
-                    background: 'white',
+                    background: '#FFFFFF',
                     borderRadius: 16,
-                    border: '1.5px solid #FEE2E2',
+                    border: '2px solid #FEE2E2',
                     padding: '24px 18px',
                     textAlign: 'center',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                    boxShadow: '0 4px 16px rgba(220,38,38,0.05)',
                     transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
@@ -339,7 +339,7 @@ export default function Home() {
                   <p style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 2 }}>{tech.specialty}</p>
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 12, borderTop: '1px solid #F1F5F9', fontSize: '0.78rem' }}>
-                    <span style={{ fontWeight: 700, color: '#D97706' }}>⭐ {tech.rating}</span>
+                    <span style={{ fontWeight: 700, color: '#DC2626' }}>⭐ {tech.rating}</span>
                     <span style={{ color: '#64748B' }}>{tech.experience} exp</span>
                   </div>
                 </div>
@@ -349,7 +349,7 @@ export default function Home() {
         </section>
 
         {/* SECTION 5: REAL CUSTOMER TESTIMONIALS */}
-        <section style={{ padding: '80px 16px', background: 'white' }}>
+        <section style={{ padding: '80px 16px', background: '#FAFAFA' }}>
           <div className="container" style={{ maxWidth: '1100px' }}>
             <div className="section-header text-center" style={{ marginBottom: 40 }}>
               <div style={{
@@ -357,9 +357,9 @@ export default function Home() {
                 alignItems: 'center',
                 gap: 6,
                 background: '#FEF2F2',
-                border: '1px solid #FEE2E2',
+                border: '1.5px solid #FEE2E2',
                 color: '#DC2626',
-                padding: '6px 16px',
+                padding: '6px 18px',
                 borderRadius: 30,
                 fontSize: '0.82rem',
                 fontWeight: 800,
@@ -379,9 +379,9 @@ export default function Home() {
                 <div 
                   key={i}
                   style={{
-                    background: '#FAFAFA',
+                    background: '#FFFFFF',
                     borderRadius: 16,
-                    border: '1px solid #E4E4E7',
+                    border: '1.5px solid #FEE2E2',
                     padding: '24px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -389,7 +389,7 @@ export default function Home() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <span style={{ color: '#F59E0B', fontSize: '1.1rem' }}>{'★'.repeat(rev.rating)}</span>
+                    <span style={{ color: '#DC2626', fontSize: '1.1rem' }}>{'★'.repeat(rev.rating)}</span>
                     <span style={{ fontSize: '0.75rem', color: '#71717A' }}>{rev.date}</span>
                   </div>
 
@@ -397,10 +397,10 @@ export default function Home() {
                     "{rev.text}"
                   </p>
 
-                  <div style={{ borderTop: '1px solid #E4E4E7', paddingTop: 12 }}>
+                  <div style={{ borderTop: '1px solid #F4F4F5', paddingTop: 12 }}>
                     <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0F172A' }}>{rev.name}</div>
                     <div style={{ fontSize: '0.78rem', color: '#71717A' }}>📍 {rev.location}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#DC2626', fontWeight: 600, marginTop: 2 }}>{rev.appliance}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#DC2626', fontWeight: 700, marginTop: 2 }}>{rev.appliance}</div>
                   </div>
                 </div>
               ))}
@@ -409,17 +409,17 @@ export default function Home() {
         </section>
 
         {/* SECTION 6: FREQUENTLY ASKED QUESTIONS */}
-        <section style={{ padding: '80px 16px', background: '#09090B', color: 'white' }}>
+        <section style={{ padding: '80px 16px', background: '#FFFFFF', borderTop: '1px solid #E4E4E7' }}>
           <div className="container" style={{ maxWidth: '800px' }}>
             <div className="section-header text-center" style={{ marginBottom: 40 }}>
               <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                background: 'rgba(220, 38, 38, 0.2)',
-                border: '1px solid #DC2626',
-                color: '#F87171',
-                padding: '6px 16px',
+                background: '#FEF2F2',
+                border: '1.5px solid #FEE2E2',
+                color: '#DC2626',
+                padding: '6px 18px',
                 borderRadius: 30,
                 fontSize: '0.82rem',
                 fontWeight: 800,
@@ -429,8 +429,8 @@ export default function Home() {
               }}>
                 ❓ Got Questions?
               </div>
-              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 900, color: 'white' }}>
-                Frequently Asked <span style={{ color: '#EF4444' }}>Questions</span>
+              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 900, color: '#0F172A' }}>
+                Frequently Asked <span style={{ color: '#DC2626' }}>Questions</span>
               </h2>
             </div>
 
@@ -439,9 +439,10 @@ export default function Home() {
                 <div 
                   key={i}
                   style={{
-                    background: '#18181B',
+                    background: '#FFFFFF',
                     borderRadius: 14,
-                    border: '1px solid #27272A',
+                    border: '1.5px solid #FEE2E2',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
                     overflow: 'hidden'
                   }}
                 >
@@ -457,16 +458,16 @@ export default function Home() {
                       alignItems: 'center',
                       fontSize: '0.98rem',
                       fontWeight: 700,
-                      color: 'white',
+                      color: '#0F172A',
                       cursor: 'pointer',
                       textAlign: 'left'
                     }}
                   >
                     <span>{faq.q}</span>
-                    <span style={{ fontSize: '1.2rem', color: '#EF4444' }}>{openFaq === i ? '−' : '+'}</span>
+                    <span style={{ fontSize: '1.3rem', color: '#DC2626', fontWeight: 900 }}>{openFaq === i ? '−' : '+'}</span>
                   </button>
                   {openFaq === i && (
-                    <div style={{ padding: '0 20px 18px', fontSize: '0.88rem', color: '#A1A1AA', lineHeight: 1.6, borderTop: '1px solid #27272A' }}>
+                    <div style={{ padding: '0 20px 18px', fontSize: '0.88rem', color: '#4B5563', lineHeight: 1.6, borderTop: '1px solid #FEE2E2' }}>
                       {faq.a}
                     </div>
                   )}
