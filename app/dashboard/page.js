@@ -400,14 +400,14 @@ function DashboardContent() {
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 onClick={() => downloadJobSheetPDF(activeBooking)}
               >
-                📥 Download Job Sheet (PDF)
+                📥 Download Tax Invoice (PDF)
               </button>
               <Link 
                 href={`/job/${activeBooking.jobId}`} 
                 target="_blank" 
                 className="btn btn-outline"
               >
-                📄 Full Job Sheet
+                📄 View Invoice & Job Sheet
               </Link>
               <button
                 className="btn btn-outline"

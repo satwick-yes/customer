@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { createBooking } from '@/lib/bookingService';
+import { downloadJobSheetPDF } from '@/lib/pdfGenerator';
+import Link from 'next/link';
 
 const PRICES = { AC: 499, Fridge: 299 };
 
@@ -53,6 +55,12 @@ function BookingFormContent() {
       const result = await createBooking(form);
       setBooking(result);
       setStep(3);
+      // Automatically generate and download official invoice PDF
+      try {
+        downloadJobSheetPDF(result);
+      } catch (pdfErr) {
+        console.error('Invoice PDF auto-download error:', pdfErr);
+      }
     } catch (err) {
       console.error(err);
       setErrors({ submit: 'Something went wrong. Please try again.' });
@@ -215,16 +223,33 @@ function BookingFormContent() {
               <p className="form-card__sub" style={{ marginTop: 8 }}>Your appliance repair service has been booked successfully.</p>
               
               <div style={{ background: 'var(--bg-soft)', padding: '24px', borderRadius: 'var(--radius-lg)', margin: '24px 0', width: '100%' }}>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: 8 }}>Your Tracking ID</p>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: 8 }}>Your Tracking & Invoice ID</p>
                 <div style={{ fontFamily: 'monospace', fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '2px' }}>
                   {booking.jobId}
                 </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 8 }}>Please save this ID to track your booking status.</p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 8 }}>Official Tax Invoice & Service Job Sheet has been generated.</p>
               </div>
-              
-              <button className="btn btn-primary" onClick={() => router.push(`/dashboard?job=${booking.jobId}`)}>
-                Track My Booking →
-              </button>
+
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', width: '100%' }}>
+                <button 
+                  className="btn btn-outline" 
+                  style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#065f46', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px' }}
+                  onClick={() => downloadJobSheetPDF(booking)}
+                >
+                  📥 Download Invoice (PDF)
+                </button>
+                <button className="btn btn-primary" onClick={() => router.push(`/dashboard?job=${booking.jobId}`)}>
+                  📍 Track My Booking Live →
+                </button>
+                <Link 
+                  href={`/job/${booking.jobId}`} 
+                  target="_blank"
+                  className="btn btn-outline"
+                  style={{ background: 'white', padding: '10px 18px' }}
+                >
+                  👁️ View Invoice Online
+                </Link>
+              </div>
             </div>
           )}
         </div>
