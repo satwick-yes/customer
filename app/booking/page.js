@@ -422,29 +422,32 @@ function BookingFormContent() {
                 </div>
               ) : (
                 <div style={{
-                  background: '#F8FAFC',
-                  border: '1.5px solid #CBD5E1',
-                  borderRadius: 12,
-                  padding: '16px 18px',
-                  marginBottom: 22
+                  background: '#FFFFFF',
+                  border: '1.5px solid #FEE2E2',
+                  borderRadius: 14,
+                  padding: '18px 20px',
+                  marginBottom: 24,
+                  boxShadow: '0 4px 16px rgba(220, 38, 38, 0.04)'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.94rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span>🔐</span> {authMode === 'signup' ? 'Create Customer Account for this Booking' : 'Sign in to Your Account'}
                     </div>
-                    <div style={{ display: 'flex', gap: 4 }}>
+                    <div style={{ display: 'flex', gap: 6, background: '#F4F4F5', padding: 3, borderRadius: 8 }}>
                       <button
                         type="button"
                         onClick={() => setAuthMode('signup')}
                         style={{
-                          padding: '4px 10px',
-                          fontSize: '0.75rem',
+                          padding: '6px 14px',
+                          fontSize: '0.8rem',
                           fontWeight: 700,
-                          background: authMode === 'signup' ? 'var(--primary)' : 'white',
-                          color: authMode === 'signup' ? 'white' : 'var(--text)',
-                          border: '1px solid var(--border)',
+                          background: authMode === 'signup' ? '#DC2626' : 'transparent',
+                          color: authMode === 'signup' ? '#FFFFFF' : '#4B5563',
+                          border: 'none',
                           borderRadius: 6,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: authMode === 'signup' ? '0 2px 8px rgba(220, 38, 38, 0.3)' : 'none'
                         }}
                       >
                         Sign Up
@@ -453,24 +456,26 @@ function BookingFormContent() {
                         type="button"
                         onClick={() => setAuthMode('login')}
                         style={{
-                          padding: '4px 10px',
-                          fontSize: '0.75rem',
+                          padding: '6px 14px',
+                          fontSize: '0.8rem',
                           fontWeight: 700,
-                          background: authMode === 'login' ? 'var(--primary)' : 'white',
-                          color: authMode === 'login' ? 'white' : 'var(--text)',
-                          border: '1px solid var(--border)',
+                          background: authMode === 'login' ? '#DC2626' : 'transparent',
+                          color: authMode === 'login' ? '#FFFFFF' : '#4B5563',
+                          border: 'none',
                           borderRadius: 6,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          boxShadow: authMode === 'login' ? '0 2px 8px rgba(220, 38, 38, 0.3)' : 'none'
                         }}
                       >
                         Sign In
                       </button>
                     </div>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: '#64748B', margin: 0 }}>
+                  <p style={{ fontSize: '0.82rem', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
                     {authMode === 'signup'
                       ? 'Creating an account allows you to track technicians live, approve on-site quotes, and download 60-day warranty job sheets.'
-                      : 'Enter your account password to link this booking directly to your customer profile.'}
+                      : 'Enter your registered mobile or email with password to link this service booking directly to your account.'}
                   </p>
                 </div>
               )}
@@ -629,8 +634,14 @@ function BookingFormContent() {
 
                 {errors.submit && <p className="form-error" style={{ marginBottom: 16 }}>⚠️ {errors.submit}</p>}
 
-                <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ height: 52, fontSize: '1.05rem', fontWeight: 700 }}>
-                  {loading ? <span className="loader" style={{ width: 22, height: 22, borderWidth: 2 }} /> : !currentUser ? '⚡ Create Account & Confirm Service Booking →' : '⚡ Confirm Service Request →'}
+                <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ height: 54, fontSize: '1.05rem', fontWeight: 800 }}>
+                  {loading ? (
+                    <span className="loader" style={{ width: 22, height: 22, borderWidth: 2 }} />
+                  ) : !currentUser ? (
+                    authMode === 'login' ? '⚡ Sign In & Confirm Service Booking →' : '⚡ Create Account & Confirm Service Booking →'
+                  ) : (
+                    '⚡ Confirm Service Booking →'
+                  )}
                 </button>
               </form>
             </div>
