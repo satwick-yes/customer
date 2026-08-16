@@ -129,15 +129,97 @@ export default function WorkerPortal() {
     }
   };
 
+  const [quoteItems, setQuoteItems] = useState([]);
+  const [newPartName, setNewPartName] = useState('');
+  const [newPartCost, setNewPartCost] = useState('');
+  const [sendingQuote, setSendingQuote] = useState(false);
+
   const openJob = (job) => {
     setJobId(job.jobId);
     setBooking(job);
     setChecklist(job.checklist || {});
     setTechNotes(job.techNotes || '');
+    if (job.quote?.items?.length) {
+      setQuoteItems(job.quote.items);
+    } else {
+      setQuoteItems([
+        { name: `${job.appliance || 'Appliance'} Diagnostic & Inspection Visit`, cost: job.price || (job.appliance === 'AC' ? 499 : 299) }
+      ]);
+    }
     setOtp('');
     setError('');
     setSuccess('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const addQuoteItem = () => {
+    if (!newPartName.trim() || !newPartCost || isNaN(Number(newPartCost))) return;
+    setQuoteItems(prev => [...prev, { name: newPartName.trim(), cost: Number(newPartCost) }]);
+    setNewPartName('');
+    setNewPartCost('');
+  };
+
+  const removeQuoteItem = (index) => {
+    setQuoteItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const addPresetPart = (name, cost) => {
+    setQuoteItems(prev => [...prev, { name, cost }]);
+  };
+
+  const handleSendQuote = async () => {
+    if (!booking) return;
+    const total = quoteItems.reduce((sum, item) => sum + (Number(item.cost) || 0), 0);
+    setSendingQuote(true);
+    setError('');
+    try {
+      const quoteObj = {
+        items: quoteItems,
+        total,
+        status: 'PENDING',
+        sentAt: new Date().toISOString(),
+        technicianName: currentTech.name,
+      };
+      const newStatus = booking.status === 'Pending' || booking.status === 'Technician Assigned' || booking.status === 'On the Way' || booking.status === 'Reached Location' ? 'Work in Progress' : booking.status;
+      
+      const newHistory = [
+        ...(booking.statusHistory || []),
+        {
+          status: newStatus,
+          timestamp: new Date().toISOString(),
+          note: `On-site estimate for ₹${total} sent to customer for approval by ${currentTech.name}`
+        }
+      ];
+
+      const targetId = booking.docId || booking.jobId;
+      const res = await fetch(`/api/bookings/${encodeURIComponent(targetId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quote: quoteObj,
+          price: total,
+          status: newStatus,
+          statusHistory: newHistory
+        })
+      });
+
+      if (res.ok) {
+        setBooking(prev => ({
+          ...prev,
+          quote: quoteObj,
+          price: total,
+          status: newStatus,
+          statusHistory: newHistory
+        }));
+        setSuccess(`⚡ Official Quote for ₹${total} sent to Customer for live approval!`);
+        fetchBookings();
+      }
+    } catch (e) {
+      console.error(e);
+      setError('Failed to send quote.');
+    } finally {
+      setSendingQuote(false);
+    }
   };
 
   const [syncingChecklist, setSyncingChecklist] = useState(false);
@@ -828,6 +910,152 @@ export default function WorkerPortal() {
                 disabled={booking.status === 'Completed'}
                 style={{ width: '100%', marginBottom: 24, resize: 'vertical' }}
               />
+
+              {/* On-Site Quotation & Parts Approval Builder */}
+              <div style={{ background: '#F8FAFC', border: '1.5px solid #CBD5E1', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                  <div>
+                    <h4 style={{ margin: 0, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>📋</span> On-Site Quotation & Extra Parts Builder
+                    </h4>
+                    <p style={{ fontSize: '0.8rem', color: '#64748B', margin: '4px 0 0' }}>
+                      Add required spare parts and labor. Sends an instant quote to the customer's phone for digital approval.
+                    </p>
+                  </div>
+
+                  {booking.quote && (
+                    <span className={`badge badge-${booking.quote.status === 'APPROVED' ? 'completed' : booking.quote.status === 'REJECTED' ? 'pending' : 'progress'}`} style={{ fontSize: '0.8rem', fontWeight: 700 }}>
+                      {booking.quote.status === 'APPROVED' ? '✅ Customer Approved' : booking.quote.status === 'REJECTED' ? '❌ Customer Declined' : '⏳ Awaiting Customer Approval'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Quick Presets */}
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase' }}>
+                    + Quick Add Common Spare Parts:
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {(booking.appliance === 'AC' ? [
+                      { name: '35µF Heavy Duty Capacitor', cost: 450 },
+                      { name: 'Copper Pipe Section (1 Meter)', cost: 850 },
+                      { name: 'R32/R410A Gas Top-up & Refill', cost: 1200 },
+                      { name: 'Indoor Coil Jet Cleaning', cost: 500 },
+                      { name: 'Drain Pipe Replacement', cost: 250 },
+                      { name: 'Contactor / Relay Replacement', cost: 650 },
+                    ] : [
+                      { name: 'Defrost Thermostat / Bi-Metal', cost: 450 },
+                      { name: 'PTC Starter Relay & OLP', cost: 550 },
+                      { name: 'R134a/R600a Gas Charging', cost: 1100 },
+                      { name: 'Door Gasket Magnetic Seal', cost: 750 },
+                      { name: 'Evaporator Fan Motor', cost: 850 },
+                    ]).map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => addPresetPart(preset.name, preset.cost)}
+                        disabled={booking.status === 'Completed'}
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          background: 'white',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: 6,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        + {preset.name} (₹{preset.cost})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom Item Adder */}
+                {booking.status !== 'Completed' && (
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                    <input
+                      type="text"
+                      placeholder="Custom Part or Labor description..."
+                      value={newPartName}
+                      onChange={(e) => setNewPartName(e.target.value)}
+                      className="form-input"
+                      style={{ flex: 2, minWidth: '180px', margin: 0, height: 42, fontSize: '0.85rem' }}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Amount (₹)"
+                      value={newPartCost}
+                      onChange={(e) => setNewPartCost(e.target.value)}
+                      className="form-input"
+                      style={{ width: '110px', margin: 0, height: 42, fontSize: '0.85rem' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={addQuoteItem}
+                      className="btn btn-outline"
+                      style={{ height: 42, padding: '0 14px', fontSize: '0.85rem', fontWeight: 600, background: 'white' }}
+                    >
+                      + Add Item
+                    </button>
+                  </div>
+                )}
+
+                {/* Quote Table List */}
+                <div style={{ background: 'white', borderRadius: 8, border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: 14 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ background: '#F1F5F9', borderBottom: '1px solid #CBD5E1', textAlign: 'left' }}>
+                        <th style={{ padding: '8px 12px' }}>Service / Part Description</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right' }}>Amount</th>
+                        {booking.status !== 'Completed' && <th style={{ padding: '8px 12px', width: 40 }}></th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {quoteItems.map((item, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '8px 12px' }}>{item.name}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700 }}>₹{item.cost}</td>
+                          {booking.status !== 'Completed' && (
+                            <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                              {quoteItems.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeQuoteItem(idx)}
+                                  style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ background: '#F8FAFC', fontWeight: 800 }}>
+                        <td style={{ padding: '10px 12px' }}>Total Quotation Estimate:</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--primary)', fontSize: '1.05rem' }}>
+                          ₹{quoteItems.reduce((sum, item) => sum + (Number(item.cost) || 0), 0)}
+                        </td>
+                        {booking.status !== 'Completed' && <td></td>}
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+                {booking.status !== 'Completed' && (
+                  <button
+                    type="button"
+                    onClick={handleSendQuote}
+                    disabled={sendingQuote}
+                    className="btn btn-primary"
+                    style={{ padding: '8px 18px', fontSize: '0.88rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    {sendingQuote ? <span className="loader" style={{ width: 14, height: 14, borderWidth: 2 }} /> : '⚡ Send Itemized Quote for Customer Live Approval'}
+                  </button>
+                )}
+              </div>
 
               {/* Payment & OTP Completion Gate */}
               {booking.status !== 'Completed' ? (

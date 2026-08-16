@@ -68,6 +68,59 @@ function DashboardContent() {
   }, [selected?.jobId]);
 
   const activeBooking = realtime || selected;
+  const [approvingQuote, setApprovingQuote] = useState(false);
+
+  const handleApproveQuote = async (approve = true) => {
+    if (!activeBooking) return;
+    setApprovingQuote(true);
+    try {
+      const quoteObj = {
+        ...activeBooking.quote,
+        status: approve ? 'APPROVED' : 'REJECTED',
+        decidedAt: new Date().toISOString()
+      };
+      const updatedPrice = approve ? (activeBooking.quote.total || activeBooking.price) : activeBooking.price;
+      const targetId = activeBooking.docId || activeBooking.jobId;
+
+      const newHistory = [
+        ...(activeBooking.statusHistory || []),
+        {
+          status: activeBooking.status,
+          timestamp: new Date().toISOString(),
+          note: approve ? `Quote of ₹${quoteObj.total} approved by customer` : 'Quote declined by customer'
+        }
+      ];
+
+      const res = await fetch(`/api/bookings/${encodeURIComponent(targetId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quote: quoteObj,
+          price: updatedPrice,
+          statusHistory: newHistory
+        })
+      });
+
+      if (res.ok) {
+        setRealtime(prev => ({
+          ...prev,
+          quote: quoteObj,
+          price: updatedPrice,
+          statusHistory: newHistory
+        }));
+      }
+    } catch (e) {
+      console.error('Quote decision error:', e);
+    } finally {
+      setApprovingQuote(false);
+    }
+  };
+
+  const getWarrantyDate = (dateStr) => {
+    const d = new Date(dateStr || Date.now());
+    d.setDate(d.getDate() + 60); // 60 days service warranty
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
 
   const handleSearch = async (e, overrideQuery) => {
     if (e) e.preventDefault();
@@ -283,6 +336,82 @@ function DashboardContent() {
               </div>
             )}
 
+            {/* On-Site Diagnostic Quote & Spare Parts Approval */}
+            {activeBooking.quote && (
+              <div style={{
+                margin: '20px 0 0',
+                background: activeBooking.quote.status === 'APPROVED' ? 'linear-gradient(135deg, #ECFDF5, #D1FAE5)' : activeBooking.quote.status === 'REJECTED' ? '#FEF2F2' : 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
+                border: `2px solid ${activeBooking.quote.status === 'APPROVED' ? '#10B981' : activeBooking.quote.status === 'REJECTED' ? '#EF4444' : '#F59E0B'}`,
+                borderRadius: 14,
+                padding: '20px 24px',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
+              }} className="anim-fade-up">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
+                  <div>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: activeBooking.quote.status === 'APPROVED' ? '#065F46' : '#92400E' }}>
+                      📋 On-Site Diagnostic Estimate & Parts Quote
+                    </div>
+                    <h3 style={{ margin: '4px 0 0', fontSize: '1.25rem', color: '#0F172A' }}>
+                      {activeBooking.quote.status === 'APPROVED' ? '✅ Repair Quote Approved' : activeBooking.quote.status === 'REJECTED' ? '❌ Quote Declined' : '⚠️ Action Required: Approve Technician Estimate'}
+                    </h3>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary)' }}>
+                      ₹{activeBooking.quote.total || activeBooking.price}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Total Repair Amount</div>
+                  </div>
+                </div>
+
+                {/* Itemized list */}
+                <div style={{ background: 'white', borderRadius: 10, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', marginBottom: 16 }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-soft)', borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                        <th style={{ padding: '10px 14px' }}>Item / Component Description</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'right' }}>Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeBooking.quote.items?.map((it, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '10px 14px' }}>{it.name}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700 }}>₹{it.cost}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {activeBooking.quote.status === 'PENDING' ? (
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => handleApproveQuote(true)}
+                      disabled={approvingQuote}
+                      className="btn btn-primary"
+                      style={{ padding: '10px 22px', fontSize: '0.92rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    >
+                      {approvingQuote ? <span className="loader" style={{ width: 16, height: 16, borderWidth: 2 }} /> : `✓ Approve Estimate (₹${activeBooking.quote.total}) & Start Repair`}
+                    </button>
+                    <button
+                      onClick={() => handleApproveQuote(false)}
+                      disabled={approvingQuote}
+                      className="btn btn-outline"
+                      style={{ background: 'white', borderColor: '#EF4444', color: '#DC2626', padding: '10px 18px', fontSize: '0.9rem' }}
+                    >
+                      Decline Extra Parts
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: activeBooking.quote.status === 'APPROVED' ? '#065F46' : '#991B1B' }}>
+                    {activeBooking.quote.status === 'APPROVED' 
+                      ? `✓ Authorized by customer. Master technician is executing repairs.` 
+                      : `You declined the additional parts. Only base inspection fee applies.`}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Checklist / Live Diagnostic & Repairs */}
             {activeBooking.checklist && Object.keys(activeBooking.checklist).some(k => activeBooking.checklist[k]) && (
               <div className="repairs-section">
@@ -343,43 +472,47 @@ function DashboardContent() {
               <BookingComments booking={activeBooking} />
             </div>
 
-            {/* Completed Job Sheet Download Banner */}
+            {/* Verified 60-Day Warranty Certificate Card & Download */}
             {activeBooking.status === 'Completed' && (
               <div style={{
                 margin: '20px 0',
-                background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
-                border: '1.5px solid #a7f3d0',
-                borderRadius: 12,
-                padding: '16px 20px',
+                background: 'linear-gradient(135deg, #ECFDF5, #D1FAE5)',
+                border: '2px solid #10B981',
+                borderRadius: 14,
+                padding: '20px 24px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
-                gap: 12
-              }}>
+                gap: 16,
+                boxShadow: '0 8px 24px rgba(16,185,129,0.12)'
+              }} className="anim-scale-in">
                 <div>
-                  <div style={{ fontWeight: 800, color: '#065f46', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>📄</span> Official Service Job Sheet & Invoice Ready
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: '1.6rem' }}>🛡️</span>
+                    <div style={{ fontWeight: 900, color: '#065F46', fontSize: '1.15rem' }}>
+                      Active 60-Day Master Warranty Certificate
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: '#047857', marginTop: 2 }}>
-                    Your repair is completed and verified. Download your official PDF receipt for records & 30-day warranty.
+                  <div style={{ fontSize: '0.88rem', color: '#047857', marginTop: 4 }}>
+                    Your repair is certified & verified. Full protection valid until: <strong style={{ color: '#064E3B' }}>{getWarrantyDate(activeBooking.createdAt)}</strong> (60-day service / 30-day parts).
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 10 }}>
                   <button 
                     onClick={() => downloadJobSheetPDF(activeBooking)}
                     className="btn btn-primary"
-                    style={{ background: '#059669', borderColor: '#047857', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 700 }}
+                    style={{ background: '#059669', borderColor: '#047857', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: '0.9rem', fontWeight: 700 }}
                   >
-                    📥 Download PDF
+                    📥 Download PDF Invoice & Warranty
                   </button>
                   <Link 
                     href={`/job/${activeBooking.jobId}`} 
                     target="_blank"
                     className="btn btn-outline"
-                    style={{ background: 'white', borderColor: '#059669', color: '#059669', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600 }}
+                    style={{ background: 'white', borderColor: '#059669', color: '#059669', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: '0.9rem', fontWeight: 600 }}
                   >
-                    👁️ View Sheet
+                    👁️ View Job Sheet
                   </Link>
                 </div>
               </div>

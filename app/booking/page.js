@@ -5,20 +5,88 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { createBooking } from '@/lib/bookingService';
+import Link from 'next/link';
 
-const PRICES = { AC: 499, Fridge: 299 };
+const INSPECTION_PRICES = { AC: 499, Fridge: 299 };
+
+const APPLIANCE_SUBTYPES = {
+  AC: ['Split AC', 'Window AC', 'Inverter Split AC', 'Cassette / Tower AC', 'Commercial Duct AC'],
+  Fridge: ['Single Door Direct Cool', 'Double Door Frost Free', 'Side-by-Side Inverter', 'Triple Door', 'Deep Freezer / Commercial']
+};
+
+const POPULAR_BRANDS = [
+  'Voltas', 'Daikin', 'LG', 'Samsung', 'Whirlpool', 'Godrej', 
+  'Hitachi', 'Blue Star', 'Panasonic', 'Haier', 'Lloyd', 'Carrier', 'Other Brand'
+];
+
+const COMMON_ISSUES = {
+  AC: [
+    'No Cooling / Warm Air Blowing',
+    'Low / Inadequate Cooling',
+    'Water Dripping / Leaking from Indoor Unit',
+    'Refrigerant Gas Leakage & Refill',
+    'Strange Grinding Noise or Vibration',
+    'AC Power Tripping / PCB Not Turning On',
+    'Periodic Deep Jet Service & Cleaning'
+  ],
+  Fridge: [
+    'Refrigeration Not Cooling (Deep Freezer OK)',
+    'Neither Freezer nor Fridge Cooling',
+    'Compressor Starting and Clicking Off',
+    'Excess Ice / Frost Buildup on Coils',
+    'Water Pooling at Bottom / Vegetable Tray',
+    'Door Gasket / Rubber Seal Loose',
+    'Thermostat & Gas Pressure Charging'
+  ]
+};
+
+const TIME_SLOTS = [
+  '⚡ Express Slot (Within 45 - 60 Mins)',
+  '🌅 Morning (9:00 AM - 12:00 PM)',
+  '☀️ Afternoon (12:00 PM - 3:00 PM)',
+  '🌇 Evening (3:00 PM - 6:00 PM)',
+  '🌙 Late Evening (6:00 PM - 8:30 PM)'
+];
+
+const CITIES = [
+  'Chandigarh', 'Mohali', 'Panchkula', 'Zirakpur', 'Kharar', 'Other Tricity'
+];
 
 function BookingFormContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [step, setStep] = useState(1);
+  
   const [form, setForm] = useState({
-    appliance: searchParams.get('appliance') || '',
-    name: '', phone: '', address: '', issue: '',
+    appliance: searchParams.get('appliance') === 'Fridge' ? 'Fridge' : 'AC',
+    applianceType: 'Split AC',
+    brand: 'LG',
+    issue: 'No Cooling / Warm Air Blowing',
+    issueDetails: '',
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: 'Chandigarh',
+    landmark: '',
+    pincode: '160022',
+    preferredDate: new Date().toISOString().split('T')[0],
+    preferredSlot: '⚡ Express Slot (Within 45 - 60 Mins)'
   });
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState(null);
+
+  // Sync appliance type default when appliance switches
+  const handleApplianceChange = (ap) => {
+    setForm(prev => ({
+      ...prev,
+      appliance: ap,
+      applianceType: APPLIANCE_SUBTYPES[ap][0],
+      issue: COMMON_ISSUES[ap][0]
+    }));
+  };
 
   const update = (field, val) => {
     setForm(prev => ({ ...prev, [field]: val }));
@@ -26,33 +94,50 @@ function BookingFormContent() {
   };
 
   const validateStep1 = () => {
-    if (!form.appliance) {
-      setErrors({ appliance: 'Please select an appliance.' });
-      return false;
-    }
-    return true;
-  };
-
-  const validateStep2 = () => {
     const errs = {};
-    if (!form.name.trim())    errs.name    = 'Name is required.';
-    if (!form.phone.trim() || !/^[6-9]\d{9}$/.test(form.phone)) errs.phone = 'Enter a valid 10-digit mobile number.';
-    if (!form.address.trim()) errs.address = 'Address is required.';
-    if (!form.issue.trim())   errs.issue   = 'Please describe the issue.';
+    if (!form.appliance) errs.appliance = 'Select an appliance category.';
+    if (!form.applianceType) errs.applianceType = 'Select appliance configuration.';
+    if (!form.brand) errs.brand = 'Select appliance brand.';
+    if (!form.issue) errs.issue = 'Select primary symptom.';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleNext = () => { if (validateStep1()) setStep(2); };
+  const validateStep2 = () => {
+    const errs = {};
+    if (!form.name.trim()) errs.name = 'Full Name is required.';
+    if (!form.phone.trim() || !/^[6-9]\d{9}$/.test(form.phone)) errs.phone = 'Valid 10-digit mobile number required.';
+    if (!form.address.trim()) errs.address = 'Service Address is required.';
+    if (!form.pincode.trim() || form.pincode.length < 6) errs.pincode = 'Valid 6-digit Pincode required.';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleNext = () => {
+    if (step === 1 && validateStep1()) {
+      setStep(2);
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep2()) return;
     setLoading(true);
     try {
-      const result = await createBooking(form);
+      const fullIssue = form.issueDetails.trim() 
+        ? `${form.issue} (${form.issueDetails.trim()})`
+        : form.issue;
+
+      const payload = {
+        ...form,
+        issue: fullIssue,
+      };
+
+      const result = await createBooking(payload);
       setBooking(result);
       setStep(3);
+      window.scrollTo({ top: 100, behavior: 'smooth' });
     } catch (err) {
       console.error(err);
       setErrors({ submit: 'Something went wrong. Please try again.' });
@@ -64,172 +149,387 @@ function BookingFormContent() {
   return (
     <>
       <div className="booking-page">
-        {/* Header */}
+        {/* Hero Banner */}
         <div className="booking-hero">
           <div className="container booking-hero__inner">
             <div className="booking-hero__text anim-fade-up">
-              <h1>Schedule Your <span className="gradient-text">Repair</span></h1>
-              <p>Takes less than 2 minutes. We'll handle the rest.</p>
+              <h1>Book Certified <span className="gradient-text">Master Technician</span></h1>
+              <p>Transparent ₹{INSPECTION_PRICES[form.appliance]} inspection fee • 60-day service warranty • Same-day 30m dispatch in Chandigarh & Tricity</p>
             </div>
           </div>
         </div>
 
-        {/* Form Container */}
-        <div className="container form-wrap">
+        <div className="container form-wrap" style={{ maxWidth: '780px', margin: '0 auto 60px' }}>
           {/* Step Indicator */}
           <div className="steps-indicator anim-fade-up">
-            {['Select Appliance', 'Your Details', 'Confirmed!'].map((label, i) => (
+            {['1. Appliance & Issue', '2. Schedule & Address', '3. Confirmation'].map((label, i) => (
               <div key={i} className={`si-step${step === i + 1 ? ' active' : step > i + 1 ? ' done' : ''}`}>
                 <div className="si-dot">{step > i + 1 ? '✓' : i + 1}</div>
-                <span className="si-label hide-mobile">{label}</span>
+                <span className="si-label">{label}</span>
                 {i < 2 && <div className={`si-line${step > i + 1 ? ' filled' : ''}`} />}
               </div>
             ))}
           </div>
 
-          {/* STEP 1 */}
+          {/* STEP 1: APPLIANCE, BRAND & ISSUE */}
           {step === 1 && (
-            <div className="form-card anim-scale-in">
-              <h2 className="form-card__title">Which appliance needs repair?</h2>
-              <p className="form-card__sub">Select the appliance below</p>
-              <div className="appliance-options">
+            <div className="form-card anim-scale-in" style={{ padding: '32px' }}>
+              <h2 className="form-card__title">1. What appliance needs service?</h2>
+              <p className="form-card__sub" style={{ marginBottom: 20 }}>
+                Choose your appliance category and specific symptoms for accurate master technician matching.
+              </p>
+
+              {/* Category Picker */}
+              <div className="appliance-options" style={{ marginBottom: 24 }}>
                 {['AC', 'Fridge'].map((ap) => (
                   <button
                     key={ap}
-                    id={`select-${ap.toLowerCase()}`}
                     type="button"
                     className={`appliance-btn${form.appliance === ap ? ' selected' : ''}`}
-                    onClick={() => update('appliance', ap)}
+                    onClick={() => handleApplianceChange(ap)}
+                    style={{ padding: '16px 20px' }}
                   >
-                    <span className="ap-icon">{ap === 'AC' ? '❄️' : '🧊'}</span>
-                    <span className="ap-name">{ap}</span>
-                    <span className="ap-price">₹{PRICES[ap]}</span>
+                    <span className="ap-icon" style={{ fontSize: '2.2rem' }}>{ap === 'AC' ? '❄️' : '🧊'}</span>
+                    <span className="ap-name" style={{ fontSize: '1.1rem', fontWeight: 800 }}>{ap === 'AC' ? 'Air Conditioner' : 'Refrigerator'}</span>
+                    <span className="ap-price" style={{ fontSize: '0.85rem' }}>Inspection: ₹{INSPECTION_PRICES[ap]}</span>
                     {form.appliance === ap && <span className="ap-check">✓</span>}
                   </button>
                 ))}
               </div>
-              {errors.appliance && <p className="form-error mt-8">⚠️ {errors.appliance}</p>}
 
-              {form.appliance && (
-                <div className="price-preview anim-fade-in">
-                  <span>Service Charge:</span>
-                  <span className="price-preview__val">₹{PRICES[form.appliance]}</span>
+              {/* Sub-type / Configuration */}
+              <div className="form-group" style={{ marginBottom: 18 }}>
+                <label className="form-label" style={{ fontWeight: 700 }}>Appliance Type / Model Category</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
+                  {APPLIANCE_SUBTYPES[form.appliance].map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => update('applianceType', type)}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: 8,
+                        border: form.applianceType === type ? '2px solid var(--primary)' : '1px solid var(--border)',
+                        background: form.applianceType === type ? 'var(--primary-ultra-light)' : 'white',
+                        color: form.applianceType === type ? 'var(--primary)' : 'var(--text)',
+                        fontWeight: form.applianceType === type ? 700 : 500,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                      }}
+                    >
+                      {form.applianceType === type ? '✓ ' : ''}{type}
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              <button id="next-step" type="button" className="btn btn-primary w-full" onClick={handleNext}>
-                Continue →
+              {/* Brand Selector */}
+              <div className="form-group" style={{ marginBottom: 18 }}>
+                <label className="form-label" style={{ fontWeight: 700 }}>Appliance Brand</label>
+                <select
+                  className="form-input"
+                  value={form.brand}
+                  onChange={(e) => update('brand', e.target.value)}
+                  style={{ height: 48, fontWeight: 600 }}
+                >
+                  {POPULAR_BRANDS.map(b => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Issue / Problem */}
+              <div className="form-group" style={{ marginBottom: 18 }}>
+                <label className="form-label" style={{ fontWeight: 700 }}>Primary Issue / Symptom Observed</label>
+                <select
+                  className="form-input"
+                  value={form.issue}
+                  onChange={(e) => update('issue', e.target.value)}
+                  style={{ height: 48, fontWeight: 600 }}
+                >
+                  {COMMON_ISSUES[form.appliance].map(iss => (
+                    <option key={iss} value={iss}>{iss}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Additional notes */}
+              <div className="form-group" style={{ marginBottom: 24 }}>
+                <label className="form-label">Additional Observations (Optional)</label>
+                <textarea
+                  className="form-input"
+                  rows={2}
+                  placeholder="E.g., Burning smell since yesterday, outdoor fan making rattling noise."
+                  value={form.issueDetails}
+                  onChange={(e) => update('issueDetails', e.target.value)}
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+
+              {/* Transparent pricing summary card */}
+              <div style={{
+                background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
+                border: '1.5px solid #BFDBFE',
+                borderRadius: 12,
+                padding: '16px 20px',
+                marginBottom: 24,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12
+              }}>
+                <div>
+                  <div style={{ fontWeight: 800, color: '#1E40AF', fontSize: '0.95rem' }}>
+                    Transparent Inspection Charge: ₹{INSPECTION_PRICES[form.appliance]}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#3B82F6', marginTop: 2 }}>
+                    Includes visit, full diagnostics, minor tuning & 60-day service warranty. Any spare parts quoted before repair.
+                  </div>
+                </div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1E40AF' }}>
+                  ₹{INSPECTION_PRICES[form.appliance]}
+                </div>
+              </div>
+
+              <button type="button" className="btn btn-primary btn-block" onClick={handleNext} style={{ height: 50, fontSize: '1rem', fontWeight: 700 }}>
+                Proceed to Schedule & Address →
               </button>
             </div>
           )}
 
-          {/* STEP 2 */}
+          {/* STEP 2: SCHEDULE & ADDRESS */}
           {step === 2 && (
-            <div className="form-card anim-scale-in">
-              <div className="form-card__top">
-                <button className="back-btn" onClick={() => setStep(1)} id="go-back">
-                  ← Back
+            <div className="form-card anim-scale-in" style={{ padding: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <button type="button" className="btn btn-outline" onClick={() => setStep(1)} style={{ padding: '6px 14px', fontSize: '0.85rem' }}>
+                  ← Back to Appliance
                 </button>
-                <div className="selected-badge">
-                  {form.appliance === 'AC' ? '❄️' : '🧊'} {form.appliance} — ₹{PRICES[form.appliance]}
-                </div>
+                <span className="badge badge-progress" style={{ fontSize: '0.8rem', padding: '6px 12px' }}>
+                  {form.brand} • {form.applianceType}
+                </span>
               </div>
-              <h2 className="form-card__title">Tell us about you</h2>
 
-              <form onSubmit={handleSubmit} className="detail-form" noValidate>
-                <div className="form-row">
+              <h2 className="form-card__title">2. Select Schedule & Service Address</h2>
+              <p className="form-card__sub" style={{ marginBottom: 22 }}>
+                Where and when should our certified field specialist arrive?
+              </p>
+
+              <form onSubmit={handleSubmit} noValidate>
+                {/* Schedule Picker */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
                   <div className="form-group">
-                    <label htmlFor="cust-name" className="form-label">Full Name *</label>
+                    <label className="form-label" style={{ fontWeight: 700 }}>Preferred Service Date *</label>
                     <input
-                      id="cust-name"
+                      type="date"
+                      className="form-input"
+                      value={form.preferredDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => update('preferredDate', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 700 }}>Time Slot *</label>
+                    <select
+                      className="form-input"
+                      value={form.preferredSlot}
+                      onChange={(e) => update('preferredSlot', e.target.value)}
+                    >
+                      {TIME_SLOTS.map(slot => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Customer Contact */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 700 }}>Customer Name *</label>
+                    <input
                       type="text"
                       className={`form-input${errors.name ? ' error' : ''}`}
-                      placeholder="e.g. Ramesh Kumar"
+                      placeholder="e.g. Gurpreet Singh"
                       value={form.name}
-                      onChange={e => update('name', e.target.value)}
+                      onChange={(e) => update('name', e.target.value)}
+                      required
                     />
                     {errors.name && <p className="form-error">⚠️ {errors.name}</p>}
                   </div>
                   <div className="form-group">
-                    <label htmlFor="cust-phone" className="form-label">Phone Number *</label>
+                    <label className="form-label" style={{ fontWeight: 700 }}>Mobile Number (For OTP & Tracking) *</label>
                     <input
-                      id="cust-phone"
                       type="tel"
+                      maxLength={10}
                       className={`form-input${errors.phone ? ' error' : ''}`}
                       placeholder="10-digit mobile number"
                       value={form.phone}
-                      maxLength={10}
-                      onChange={e => update('phone', e.target.value.replace(/\D/g,''))}
+                      onChange={(e) => update('phone', e.target.value.replace(/\D/g, ''))}
+                      required
                     />
                     {errors.phone && <p className="form-error">⚠️ {errors.phone}</p>}
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="cust-address" className="form-label">Service Address *</label>
+                {/* Location Details */}
+                <div className="form-group" style={{ marginBottom: 16 }}>
+                  <label className="form-label" style={{ fontWeight: 700 }}>House / Flat No. & Street Address *</label>
                   <input
-                    id="cust-address"
                     type="text"
                     className={`form-input${errors.address ? ' error' : ''}`}
-                    placeholder="Full address including area and city"
+                    placeholder="e.g. Flat 302, Tower B, Palm Residency or House #1420"
                     value={form.address}
-                    onChange={e => update('address', e.target.value)}
+                    onChange={(e) => update('address', e.target.value)}
+                    required
                   />
                   {errors.address && <p className="form-error">⚠️ {errors.address}</p>}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="cust-issue" className="form-label">Describe the Issue *</label>
-                  <textarea
-                    id="cust-issue"
-                    className={`form-input${errors.issue ? ' error' : ''}`}
-                    placeholder="e.g. AC is not cooling, making a loud noise..."
-                    rows={3}
-                    value={form.issue}
-                    onChange={e => update('issue', e.target.value)}
-                  />
-                  {errors.issue && <p className="form-error">⚠️ {errors.issue}</p>}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
+                  <div className="form-group">
+                    <label className="form-label">City / Region *</label>
+                    <select
+                      className="form-input"
+                      value={form.city}
+                      onChange={(e) => update('city', e.target.value)}
+                    >
+                      {CITIES.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Nearby Landmark</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g. Near Govt Hospital"
+                      value={form.landmark}
+                      onChange={(e) => update('landmark', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Pincode *</label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      className={`form-input${errors.pincode ? ' error' : ''}`}
+                      placeholder="160022"
+                      value={form.pincode}
+                      onChange={(e) => update('pincode', e.target.value.replace(/\D/g, ''))}
+                      required
+                    />
+                    {errors.pincode && <p className="form-error">⚠️ {errors.pincode}</p>}
+                  </div>
                 </div>
 
-                {errors.submit && <p className="form-error">⚠️ {errors.submit}</p>}
-
-                <div className="form-summary">
-                  <div className="summary-row"><span>Appliance</span><strong>{form.appliance}</strong></div>
-                  <div className="summary-row"><span>Service Fee</span><strong className="text-red">₹{PRICES[form.appliance]}</strong></div>
+                {/* Order Summary Confirmation Block */}
+                <div style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: 12, padding: 18, marginBottom: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontWeight: 700, color: 'var(--text-dark)' }}>{form.brand} {form.applianceType} Inspection & Visit</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--primary)' }}>₹{INSPECTION_PRICES[form.appliance]}</span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                    🛡️ Protected by <strong>CoolFix 60-Day Service Warranty</strong> & 30-Day Spare Parts Guarantee. Pay safely after inspection via Cash or UPI.
+                  </div>
                 </div>
 
-                <button id="submit-booking" type="submit" className="btn btn-primary w-full" disabled={loading}>
-                  {loading
-                    ? <><span className="loader" style={{ width: 20, height: 20, borderWidth: 2 }} /> Processing...</>
-                    : '✓ Confirm Booking'
-                  }
+                {errors.submit && <p className="form-error" style={{ marginBottom: 16 }}>⚠️ {errors.submit}</p>}
+
+                <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ height: 52, fontSize: '1.05rem', fontWeight: 700 }}>
+                  {loading ? <span className="loader" style={{ width: 22, height: 22, borderWidth: 2 }} /> : '⚡ Confirm Service Request →'}
                 </button>
               </form>
             </div>
           )}
-          {/* STEP 3 */}
+
+          {/* STEP 3: SUCCESS CONFIRMATION */}
           {step === 3 && booking && (
-            <div className="form-card anim-scale-in" style={{ textAlign: 'center', alignItems: 'center', padding: '60px 20px' }}>
-              <div className="success-icon" style={{ width: 80, height: 80, fontSize: '2.5rem', marginBottom: 16 }}>✓</div>
-              <h2 className="form-card__title">Booking Confirmed!</h2>
-              <p className="form-card__sub" style={{ marginTop: 8 }}>Your appliance repair service has been booked successfully.</p>
-              
-              <div style={{ background: 'var(--bg-soft)', padding: '24px', borderRadius: 'var(--radius-lg)', margin: '24px 0', width: '100%' }}>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: 8 }}>Your Tracking ID</p>
-                <div style={{ fontFamily: 'monospace', fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '2px' }}>
+            <div className="form-card anim-scale-in text-center" style={{ padding: '40px 28px' }}>
+              <div style={{ fontSize: '3.8rem', marginBottom: 12 }}>🎉</div>
+              <h2 className="form-card__title">Booking Registered Successfully!</h2>
+              <p className="form-card__sub" style={{ marginTop: 6, fontSize: '0.95rem' }}>
+                A certified master technician is being dispatched to your address.
+              </p>
+
+              <div style={{
+                background: 'linear-gradient(135deg, #1E293B, #0F172A)',
+                color: 'white',
+                padding: '24px',
+                borderRadius: 14,
+                margin: '24px auto',
+                maxWidth: '520px',
+                textAlign: 'center',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.18)'
+              }}>
+                <div style={{ fontSize: '0.8rem', letterSpacing: '0.1em', fontWeight: 700, color: '#93C5FD', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Your Official Tracking ID
+                </div>
+                <div style={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 900, color: 'white', letterSpacing: '3px' }}>
                   {booking.jobId}
                 </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 8 }}>Please save this ID to track your booking status.</p>
+                <div style={{ fontSize: '0.85rem', color: '#CBD5E1', marginTop: 10 }}>
+                  📍 {booking.address}, {booking.city || 'Chandigarh'}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginTop: 4 }}>
+                  Slot: {booking.preferredSlot} • Date: {booking.preferredDate}
+                </div>
               </div>
-              
-              <button className="btn btn-primary" onClick={() => router.push(`/dashboard?job=${booking.jobId}`)}>
-                Track My Booking →
-              </button>
+
+              {/* OTP Security Notice */}
+              {booking.otp && (
+                <div style={{
+                  background: '#FEF3C7',
+                  border: '1.5px solid #F59E0B',
+                  borderRadius: 10,
+                  padding: '12px 18px',
+                  marginBottom: 24,
+                  maxWidth: '520px',
+                  margin: '0 auto 24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  textAlign: 'left'
+                }}>
+                  <span style={{ fontSize: '1.6rem' }}>🔐</span>
+                  <div>
+                    <div style={{ fontWeight: 800, color: '#92400E', fontSize: '0.85rem' }}>
+                      Completion OTP: <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: '#B45309', marginLeft: 4 }}>{booking.otp}</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#92400E' }}>
+                      Share this OTP with the technician only when the service is fully completed to your satisfaction.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => router.push(`/dashboard?job=${booking.jobId}`)}
+                  style={{ padding: '12px 28px', fontSize: '1rem', fontWeight: 700 }}
+                >
+                  📍 Track Technician Live Now →
+                </button>
+                <Link
+                  href={`/job/${booking.jobId}`}
+                  target="_blank"
+                  className="btn btn-outline"
+                  style={{ padding: '12px 20px', background: 'white' }}
+                >
+                  📄 View Official Job Sheet
+                </Link>
+              </div>
             </div>
           )}
         </div>
       </div>
-</>
+      <Footer />
+    </>
   );
 }
 
@@ -237,10 +537,9 @@ export default function BookingPage() {
   return (
     <>
       <Navbar />
-      <Suspense fallback={<div style={{display:'flex',justifyContent:'center',padding:'200px 0'}}><span className="loader" /></div>}>
+      <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '200px 0' }}><span className="loader" /></div>}>
         <BookingFormContent />
       </Suspense>
-      <Footer />
     </>
   );
 }
