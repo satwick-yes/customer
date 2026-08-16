@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import FrameSequenceHero from '@/components/FrameSequenceHero';
 import { TECHNICIANS } from '@/lib/technicians';
 
 const REVIEWS = [
@@ -67,212 +68,251 @@ const FAQS = [
 export default function Home() {
   const [openFaq, setOpenFaq] = useState(null);
 
-  useEffect(() => {
-    // Load Spline viewer dynamically
-    if (!document.querySelector('script[src="https://unpkg.com/@splinetool/viewer@1.9.5/build/spline-viewer.js"]')) {
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = 'https://unpkg.com/@splinetool/viewer@1.9.5/build/spline-viewer.js';
-      document.head.appendChild(script);
-    }
-
-    // Permanently remove "Built with Spline" watermark from shadow DOM
-    const removeSplineLogo = () => {
-      const viewer = document.querySelector('spline-viewer');
-      if (viewer && viewer.shadowRoot) {
-        if (!viewer.shadowRoot.querySelector('#hide-spline-logo-style')) {
-          const style = document.createElement('style');
-          style.id = 'hide-spline-logo-style';
-          style.textContent = `
-            #logo, a#logo, a[href*="spline.design"], .spline-watermark {
-              display: none !important;
-              opacity: 0 !important;
-              visibility: hidden !important;
-              pointer-events: none !important;
-              transform: scale(0) !important;
-            }
-          `;
-          viewer.shadowRoot.appendChild(style);
-        }
-
-        const logo = viewer.shadowRoot.querySelector('#logo') || viewer.shadowRoot.querySelector('a[href*="spline.design"]');
-        if (logo) {
-          logo.style.display = 'none';
-          logo.style.opacity = '0';
-          logo.style.visibility = 'hidden';
-          logo.remove();
-        }
-      }
-    };
-
-    const interval = setInterval(removeSplineLogo, 100);
-    const timeout = setTimeout(() => clearInterval(interval), 15000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, []);
-
   return (
     <>
       <Navbar />
       <main>
-        {/* HERO SECTION */}
-        <section className="hero-section">
-          <div className="hero-bg" style={{ backgroundColor: '#0f172a', overflow: 'hidden' }}>
-            <spline-viewer url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" style={{ width: '100%', height: '100%' }}></spline-viewer>
-          </div>
-          <div className="hero-overlay" style={{ background: 'linear-gradient(to right, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.75) 50%, rgba(15,23,42,0.25) 100%)' }}></div>
-          
-          <div className="container hero-content">
-            <div className="hero-text-block anim-fade-up">
-              <span className="hero-badge">
-                <span className="hero-pulse"></span>
-                📍 Serving Chandigarh, Mohali, Panchkula & Tricity
-              </span>
-              
-              <h1 className="hero-title font-headline">
-                AC & Refrigerator<br />
-                Repair at Your<br />
-                <span className="text-primary italic">Doorstep.</span>
-              </h1>
-              
-              <p className="hero-desc">
-                Certified master technicians • Transparent pricing from ₹299 • Same-day 30m dispatch • 
-                <strong style={{ color: 'white' }}> 60-day service warranty</strong> included.
-              </p>
-              
-              <div className="hero-actions">
-                <Link href="/booking" className="btn btn-primary" style={{ height: '56px', fontSize: '1.05rem', padding: '0 32px' }}>
-                  <span className="material-symbols-outlined icon-filled">bolt</span>
-                  Book Master Service Now
-                </Link>
-                <Link href="/dashboard" className="btn btn-outline hero-btn-outline" style={{ height: '56px' }}>
-                  <span className="material-symbols-outlined">radar</span>
-                  Track Live Booking
-                </Link>
-              </div>
+        {/* Frame-by-Frame Scroll Sequence Hero */}
+        <FrameSequenceHero />
 
-              <div className="hero-stats">
-                <div className="stat-item">
-                  <p className="stat-val font-headline">4.9/5</p>
-                  <p className="stat-label">Verified Ratings</p>
-                </div>
-                <div className="stat-item">
-                  <p className="stat-val font-headline">30m</p>
-                  <p className="stat-label">Avg. Arrival</p>
-                </div>
-                <div className="stat-item">
-                  <p className="stat-val font-headline">12k+</p>
-                  <p className="stat-label">Homes Serviced</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* THE DIFFERENCE SECTION */}
-        <section className="difference-section carbon-texture">
+        {/* SECTION 2: THE COOLFIX RED & WHITE STANDARD */}
+        <section className="difference-section carbon-texture" style={{ padding: '80px 0', background: '#09090B', color: 'white' }}>
           <div className="container">
-            <div className="section-header text-center">
-              <p className="section-eyebrow text-primary">Why 12,000+ neighbors choose us</p>
-              <h2 className="font-headline section-title">The <span className="text-primary italic">CoolFix</span> Standard</h2>
+            <div className="section-header text-center" style={{ marginBottom: 48 }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(220, 38, 38, 0.18)',
+                border: '1px solid #DC2626',
+                color: '#F87171',
+                padding: '6px 16px',
+                borderRadius: 30,
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginBottom: 14
+              }}>
+                ✦ Why 12,000+ neighbors choose us
+              </div>
+              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 900, color: 'white' }}>
+                The <span style={{ color: '#EF4444' }}>CoolFix</span> Master Standard
+              </h2>
             </div>
 
-            <div className="diff-grid">
-              <div className="diff-card">
-                <div className="diff-icon-wrap" style={{ background: 'var(--primary-container)', color: 'var(--primary)' }}>
+            <div className="diff-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
+              <div className="diff-card" style={{ background: '#18181B', border: '1.5px solid #27272A', borderRadius: 16, padding: '32px 24px' }}>
+                <div className="diff-icon-wrap" style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#EF4444', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <span className="material-symbols-outlined icon-filled" style={{ fontSize: '32px' }}>verified_user</span>
                 </div>
-                <span className="diff-number">01</span>
-                <h3 className="font-headline">Background-Verified Pros</h3>
-                <p>Every technician is certified, background-checked, and brings 6 to 10+ years of technical field expertise.</p>
+                <span className="diff-number" style={{ color: '#DC2626', fontWeight: 900, fontSize: '1.2rem', fontFamily: 'monospace' }}>01</span>
+                <h3 className="font-headline" style={{ color: 'white', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>Background-Verified Pros</h3>
+                <p style={{ color: '#A1A1AA', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  Every technician is certified, background-checked, and brings 6 to 10+ years of technical field expertise in AC & refrigeration.
+                </p>
               </div>
 
-              <div className="diff-card">
-                <div className="diff-icon-wrap" style={{ background: '#E0E7FF', color: '#4338CA' }}>
+              <div className="diff-card" style={{ background: '#18181B', border: '1.5px solid #27272A', borderRadius: 16, padding: '32px 24px' }}>
+                <div className="diff-icon-wrap" style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#EF4444', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <span className="material-symbols-outlined icon-filled" style={{ fontSize: '32px' }}>security</span>
                 </div>
-                <span className="diff-number">02</span>
-                <h3 className="font-headline">Digital Quote Approval</h3>
-                <p>No surprise bills. Review itemized spare parts quotes directly on your screen and approve with one tap before work begins.</p>
+                <span className="diff-number" style={{ color: '#DC2626', fontWeight: 900, fontSize: '1.2rem', fontFamily: 'monospace' }}>02</span>
+                <h3 className="font-headline" style={{ color: 'white', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>Digital Quote Approval</h3>
+                <p style={{ color: '#A1A1AA', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  Zero surprise bills. Review itemized spare parts quotes directly on your screen and approve with one tap before work begins.
+                </p>
               </div>
 
-              <div className="diff-card">
-                <div className="diff-icon-wrap" style={{ background: '#FEF3C7', color: '#D97706' }}>
+              <div className="diff-card" style={{ background: '#18181B', border: '1.5px solid #27272A', borderRadius: 16, padding: '32px 24px' }}>
+                <div className="diff-icon-wrap" style={{ background: 'rgba(220, 38, 38, 0.2)', color: '#EF4444', width: 56, height: 56, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   <span className="material-symbols-outlined icon-filled" style={{ fontSize: '32px' }}>workspace_premium</span>
                 </div>
-                <span className="diff-number">03</span>
-                <h3 className="font-headline">60-Day Master Warranty</h3>
-                <p>Complete peace of mind with 60-day service warranty and 30-day parts protection on all completed repairs.</p>
+                <span className="diff-number" style={{ color: '#DC2626', fontWeight: 900, fontSize: '1.2rem', fontFamily: 'monospace' }}>03</span>
+                <h3 className="font-headline" style={{ color: 'white', fontSize: '1.25rem', fontWeight: 800, margin: '8px 0 10px' }}>60-Day Master Warranty</h3>
+                <p style={{ color: '#A1A1AA', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  Complete peace of mind with 60-day service warranty and 30-day parts protection on all completed repairs.
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SERVICES CATALOG */}
-        <section id="services" className="services-section">
+        {/* SECTION 3: SERVICES CATALOG IN CRISP WHITE & BOLD RED */}
+        <section id="services" className="services-section" style={{ padding: '80px 0', background: '#FFFFFF' }}>
           <div className="container">
-            <div className="section-header text-center">
-              <p className="section-eyebrow text-primary">Transparent Pricing</p>
-              <h2 className="font-headline section-title">Diagnostic Inspection & <br /><span className="text-primary italic">Repair Services</span></h2>
-              <div className="title-dash"></div>
+            <div className="section-header text-center" style={{ marginBottom: 48 }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: '#FEF2F2',
+                border: '1px solid #FEE2E2',
+                color: '#DC2626',
+                padding: '6px 16px',
+                borderRadius: 30,
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginBottom: 14
+              }}>
+                ⚡ Transparent Diagnostic Pricing
+              </div>
+              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', fontWeight: 900, color: '#0F172A' }}>
+                Professional Repair for <span style={{ color: '#DC2626' }}>Every Appliance</span>
+              </h2>
             </div>
 
-            <div className="services-grid">
+            <div className="services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 32 }}>
               {/* AC Card */}
               <div className="service-col">
-                <Link href="/booking?appliance=AC" className="service-card group">
-                  <div className="service-img" style={{ backgroundImage: 'url(/ac_premium.jpg)' }}></div>
-                  <div className="service-overlay"></div>
-                  <div className="service-card-content">
+                <Link href="/booking?appliance=AC" className="service-card group" style={{
+                  display: 'block',
+                  position: 'relative',
+                  height: '320px',
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                  boxShadow: '0 12px 32px rgba(220, 38, 38, 0.15)',
+                  border: '2px solid #FEE2E2'
+                }}>
+                  <div className="service-img" style={{
+                    backgroundImage: 'url(/ac_premium.jpg)',
+                    width: '100%',
+                    height: '100%',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    transition: 'transform 0.4s ease'
+                  }}></div>
+                  <div className="service-overlay" style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.3) 60%, transparent 100%)'
+                  }}></div>
+                  <div className="service-card-content" style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: '24px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end'
+                  }}>
                     <div>
-                      <p className="service-price-label">Inspection from</p>
-                      <p className="service-price font-headline">₹499</p>
+                      <p style={{ color: '#F87171', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Inspection & Visit</p>
+                      <p style={{ color: 'white', fontSize: '2.2rem', fontWeight: 900 }}>₹499</p>
                     </div>
-                    <button className="service-action-btn">
-                      <span className="material-symbols-outlined icon-filled">bolt</span>
-                    </button>
+                    <span style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      background: '#DC2626',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.4rem',
+                      boxShadow: '0 4px 16px rgba(220,38,38,0.5)'
+                    }}>
+                      ⚡
+                    </span>
                   </div>
                 </Link>
-                <div className="service-meta">
-                  <h3 className="font-headline">Air Conditioner Service</h3>
-                  <p>Split & Window AC • Jet Cleaning • Gas Refill • 60-Day Warranty</p>
+                <div className="service-meta" style={{ marginTop: 16 }}>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0F172A' }}>Air Conditioner Service & Repair</h3>
+                  <p style={{ color: '#64748B', fontSize: '0.88rem', marginTop: 4 }}>Split & Window AC • Jet Cleaning • Gas Refill • Inverter PCB • 60-Day Warranty</p>
                 </div>
               </div>
 
               {/* Fridge Card */}
               <div className="service-col">
-                <Link href="/booking?appliance=Fridge" className="service-card group">
-                  <div className="service-img" style={{ backgroundImage: 'url(/fridge_premium.jpg)' }}></div>
-                  <div className="service-overlay"></div>
-                  <div className="service-card-content">
+                <Link href="/booking?appliance=Fridge" className="service-card group" style={{
+                  display: 'block',
+                  position: 'relative',
+                  height: '320px',
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                  boxShadow: '0 12px 32px rgba(220, 38, 38, 0.15)',
+                  border: '2px solid #FEE2E2'
+                }}>
+                  <div className="service-img" style={{
+                    backgroundImage: 'url(/fridge_premium.jpg)',
+                    width: '100%',
+                    height: '100%',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    transition: 'transform 0.4s ease'
+                  }}></div>
+                  <div className="service-overlay" style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(15,23,42,0.3) 60%, transparent 100%)'
+                  }}></div>
+                  <div className="service-card-content" style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    padding: '24px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end'
+                  }}>
                     <div>
-                      <p className="service-price-label">Inspection from</p>
-                      <p className="service-price font-headline">₹299</p>
+                      <p style={{ color: '#F87171', fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Inspection & Visit</p>
+                      <p style={{ color: 'white', fontSize: '2.2rem', fontWeight: 900 }}>₹299</p>
                     </div>
-                    <button className="service-action-btn">
-                      <span className="material-symbols-outlined icon-filled">bolt</span>
-                    </button>
+                    <span style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      background: '#DC2626',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.4rem',
+                      boxShadow: '0 4px 16px rgba(220,38,38,0.5)'
+                    }}>
+                      ⚡
+                    </span>
                   </div>
                 </Link>
-                <div className="service-meta">
-                  <h3 className="font-headline">Refrigerator Service</h3>
-                  <p>Single & Double Door • Compressor Repair • Thermostats • Gas Charging</p>
+                <div className="service-meta" style={{ marginTop: 16 }}>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0F172A' }}>Refrigerator Service & Repair</h3>
+                  <p style={{ color: '#64748B', fontSize: '0.88rem', marginTop: 4 }}>Single & Double Door • Smart Inverter Fridges • Compressor & Gas • 60-Day Warranty</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* MEET OUR MASTER TECHNICIANS SECTION */}
-        <section style={{ padding: '70px 16px', background: '#F8FAFC', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+        {/* SECTION 4: MEET OUR MASTER TECHNICIANS */}
+        <section style={{ padding: '80px 16px', background: '#FAFAFA', borderTop: '1px solid #E4E4E7', borderBottom: '1px solid #E4E4E7' }}>
           <div className="container" style={{ maxWidth: '1100px' }}>
             <div className="section-header text-center" style={{ marginBottom: 40 }}>
-              <p className="section-eyebrow text-primary">Master Field Specialists</p>
-              <h2 className="font-headline section-title">Who Will Arrive at <span className="text-primary italic">Your Home?</span></h2>
-              <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '10px auto 0' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: '#FEF2F2',
+                border: '1px solid #FEE2E2',
+                color: '#DC2626',
+                padding: '6px 16px',
+                borderRadius: 30,
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginBottom: 14
+              }}>
+                👨‍🔧 Master Field Specialists
+              </div>
+              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 900, color: '#0F172A' }}>
+                Who Will Arrive at <span style={{ color: '#DC2626' }}>Your Home?</span>
+              </h2>
+              <p style={{ color: '#64748B', maxWidth: '600px', margin: '10px auto 0' }}>
                 Every CoolFix technician is background-verified, company-certified, and carries genuine diagnostic equipment.
               </p>
             </div>
@@ -283,23 +323,24 @@ export default function Home() {
                   key={tech.id}
                   style={{
                     background: 'white',
-                    borderRadius: 14,
-                    border: '1.5px solid var(--border)',
+                    borderRadius: 16,
+                    border: '1.5px solid #FEE2E2',
                     padding: '24px 18px',
                     textAlign: 'center',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
                   <div style={{ fontSize: '3rem', marginBottom: 8 }}>{tech.avatar}</div>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#EFF6FF', color: '#1E40AF', fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 10, marginBottom: 8 }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#FEF2F2', color: '#DC2626', fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 10, marginBottom: 8 }}>
                     <span>🛡️</span> Verified Pro
                   </div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-dark)' }}>{tech.name}</h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 2 }}>{tech.specialty}</p>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0F172A' }}>{tech.name}</h3>
+                  <p style={{ fontSize: '0.78rem', color: '#64748B', marginTop: 2 }}>{tech.specialty}</p>
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 12, borderTop: '1px solid #F1F5F9', fontSize: '0.78rem' }}>
                     <span style={{ fontWeight: 700, color: '#D97706' }}>⭐ {tech.rating}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>{tech.experience} exp</span>
+                    <span style={{ color: '#64748B' }}>{tech.experience} exp</span>
                   </div>
                 </div>
               ))}
@@ -307,12 +348,30 @@ export default function Home() {
           </div>
         </section>
 
-        {/* VERIFIED CUSTOMER REVIEWS */}
-        <section style={{ padding: '70px 16px' }}>
+        {/* SECTION 5: REAL CUSTOMER TESTIMONIALS */}
+        <section style={{ padding: '80px 16px', background: 'white' }}>
           <div className="container" style={{ maxWidth: '1100px' }}>
             <div className="section-header text-center" style={{ marginBottom: 40 }}>
-              <p className="section-eyebrow text-primary">Customer Testimonials</p>
-              <h2 className="font-headline section-title">Real Feedback from <span className="text-primary italic">Local Homes</span></h2>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: '#FEF2F2',
+                border: '1px solid #FEE2E2',
+                color: '#DC2626',
+                padding: '6px 16px',
+                borderRadius: 30,
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginBottom: 14
+              }}>
+                ⭐ Verified Reviews
+              </div>
+              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 900, color: '#0F172A' }}>
+                Real Feedback from <span style={{ color: '#DC2626' }}>Tricity Homes</span>
+              </h2>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 24 }}>
@@ -320,28 +379,28 @@ export default function Home() {
                 <div 
                   key={i}
                   style={{
-                    background: 'white',
-                    borderRadius: 14,
-                    border: '1px solid var(--border)',
+                    background: '#FAFAFA',
+                    borderRadius: 16,
+                    border: '1px solid #E4E4E7',
                     padding: '24px',
                     display: 'flex',
                     flexDirection: 'column',
-                    boxShadow: '0 4px 18px rgba(0,0,0,0.05)'
+                    boxShadow: '0 4px 18px rgba(0,0,0,0.03)'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                     <span style={{ color: '#F59E0B', fontSize: '1.1rem' }}>{'★'.repeat(rev.rating)}</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{rev.date}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#71717A' }}>{rev.date}</span>
                   </div>
 
-                  <p style={{ fontSize: '0.88rem', color: 'var(--text)', lineHeight: 1.5, flex: 1, marginBottom: 16 }}>
+                  <p style={{ fontSize: '0.88rem', color: '#18181B', lineHeight: 1.5, flex: 1, marginBottom: 16 }}>
                     "{rev.text}"
                   </p>
 
-                  <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: 12 }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-dark)' }}>{rev.name}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>📍 {rev.location}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600, marginTop: 2 }}>{rev.appliance}</div>
+                  <div style={{ borderTop: '1px solid #E4E4E7', paddingTop: 12 }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0F172A' }}>{rev.name}</div>
+                    <div style={{ fontSize: '0.78rem', color: '#71717A' }}>📍 {rev.location}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#DC2626', fontWeight: 600, marginTop: 2 }}>{rev.appliance}</div>
                   </div>
                 </div>
               ))}
@@ -349,12 +408,30 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FREQUENTLY ASKED QUESTIONS */}
-        <section style={{ padding: '70px 16px', background: 'var(--bg-soft)' }}>
+        {/* SECTION 6: FREQUENTLY ASKED QUESTIONS */}
+        <section style={{ padding: '80px 16px', background: '#09090B', color: 'white' }}>
           <div className="container" style={{ maxWidth: '800px' }}>
             <div className="section-header text-center" style={{ marginBottom: 40 }}>
-              <p className="section-eyebrow text-primary">Got Questions?</p>
-              <h2 className="font-headline section-title">Frequently Asked <span className="text-primary italic">Questions</span></h2>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(220, 38, 38, 0.2)',
+                border: '1px solid #DC2626',
+                color: '#F87171',
+                padding: '6px 16px',
+                borderRadius: 30,
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginBottom: 14
+              }}>
+                ❓ Got Questions?
+              </div>
+              <h2 className="font-headline section-title" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)', fontWeight: 900, color: 'white' }}>
+                Frequently Asked <span style={{ color: '#EF4444' }}>Questions</span>
+              </h2>
             </div>
 
             <div style={{ display: 'grid', gap: 12 }}>
@@ -362,9 +439,9 @@ export default function Home() {
                 <div 
                   key={i}
                   style={{
-                    background: 'white',
-                    borderRadius: 12,
-                    border: '1px solid var(--border)',
+                    background: '#18181B',
+                    borderRadius: 14,
+                    border: '1px solid #27272A',
                     overflow: 'hidden'
                   }}
                 >
@@ -380,16 +457,16 @@ export default function Home() {
                       alignItems: 'center',
                       fontSize: '0.98rem',
                       fontWeight: 700,
-                      color: 'var(--text-dark)',
+                      color: 'white',
                       cursor: 'pointer',
                       textAlign: 'left'
                     }}
                   >
                     <span>{faq.q}</span>
-                    <span style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{openFaq === i ? '−' : '+'}</span>
+                    <span style={{ fontSize: '1.2rem', color: '#EF4444' }}>{openFaq === i ? '−' : '+'}</span>
                   </button>
                   {openFaq === i && (
-                    <div style={{ padding: '0 20px 18px', fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.6, borderTop: '1px solid #F1F5F9' }}>
+                    <div style={{ padding: '0 20px 18px', fontSize: '0.88rem', color: '#A1A1AA', lineHeight: 1.6, borderTop: '1px solid #27272A' }}>
                       {faq.a}
                     </div>
                   )}
