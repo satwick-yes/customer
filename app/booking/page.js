@@ -56,7 +56,10 @@ function BookingFormContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [step, setStep] = useState(1);
-  
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authMode, setAuthMode] = useState('signup'); // 'signup' or 'login' for non-logged-in customers
+  const [accountPassword, setAccountPassword] = useState('');
+
   const [form, setForm] = useState({
     appliance: searchParams.get('appliance') === 'Fridge' ? 'Fridge' : 'AC',
     applianceType: 'Split AC',
@@ -77,6 +80,27 @@ function BookingFormContent() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState(null);
+
+  // Check if customer is already logged in
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('coolfix_user');
+      if (saved) {
+        const user = JSON.parse(saved);
+        if (user && (user.email || user.phone)) {
+          setCurrentUser(user);
+          setForm(prev => ({
+            ...prev,
+            name: prev.name || user.name || '',
+            phone: prev.phone || user.phone || '',
+            email: prev.email || user.email || ''
+          }));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   // Sync appliance type default when appliance switches
   const handleApplianceChange = (ap) => {
@@ -107,6 +131,9 @@ function BookingFormContent() {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Full Name is required.';
     if (!form.phone.trim() || !/^[6-9]\d{9}$/.test(form.phone)) errs.phone = 'Valid 10-digit mobile number required.';
+    if (!currentUser && (!accountPassword || accountPassword.length < 4)) {
+      errs.password = 'Password (min 4 characters) is required to create your account.';
+    }
     if (!form.address.trim()) errs.address = 'Service Address is required.';
     if (!form.pincode.trim() || form.pincode.length < 6) errs.pincode = 'Valid 6-digit Pincode required.';
     setErrors(errs);
@@ -124,7 +151,45 @@ function BookingFormContent() {
     e.preventDefault();
     if (!validateStep2()) return;
     setLoading(true);
+    setErrors({});
+
     try {
+      // If customer is not logged in yet, create their account or sign them in first
+      if (!currentUser) {
+        const authRes = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: authMode === 'signup' ? 'signup' : 'login',
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            password: accountPassword,
+            role: 'customer'
+          })
+        });
+
+        const authData = await authRes.json();
+
+        if (!authRes.ok) {
+          // If already registered and tried signup, prompt to login
+          if (authRes.status === 409) {
+            setErrors({ submit: 'An account with this phone/email already exists. Switch to "Sign In" below or enter correct password.' });
+            setAuthMode('login');
+            setLoading(false);
+            return;
+          }
+          setErrors({ submit: authData.error || 'Account registration failed.' });
+          setLoading(false);
+          return;
+        }
+
+        if (authData.user) {
+          localStorage.setItem('coolfix_user', JSON.stringify(authData.user));
+          setCurrentUser(authData.user);
+        }
+      }
+
       const fullIssue = form.issueDetails.trim() 
         ? `${form.issue} (${form.issueDetails.trim()})`
         : form.issue;
@@ -146,6 +211,12 @@ function BookingFormContent() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('coolfix_user');
+    setCurrentUser(null);
+    setAccountPassword('');
+  };
+
   return (
     <>
       <div className="booking-page">
@@ -162,7 +233,7 @@ function BookingFormContent() {
         <div className="container form-wrap" style={{ maxWidth: '780px', margin: '0 auto 60px' }}>
           {/* Step Indicator */}
           <div className="steps-indicator anim-fade-up">
-            {['1. Appliance & Issue', '2. Schedule & Address', '3. Confirmation'].map((label, i) => (
+            {['1. Appliance & Issue', '2. Account & Address', '3. Confirmation'].map((label, i) => (
               <div key={i} className={`si-step${step === i + 1 ? ' active' : step > i + 1 ? ' done' : ''}`}>
                 <div className="si-dot">{step > i + 1 ? '✓' : i + 1}</div>
                 <span className="si-label">{label}</span>
@@ -294,12 +365,12 @@ function BookingFormContent() {
               </div>
 
               <button type="button" className="btn btn-primary btn-block" onClick={handleNext} style={{ height: 50, fontSize: '1rem', fontWeight: 700 }}>
-                Proceed to Schedule & Address →
+                Proceed to Account & Address →
               </button>
             </div>
           )}
 
-          {/* STEP 2: SCHEDULE & ADDRESS */}
+          {/* STEP 2: ACCOUNT, SCHEDULE & ADDRESS */}
           {step === 2 && (
             <div className="form-card anim-scale-in" style={{ padding: '32px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -311,10 +382,98 @@ function BookingFormContent() {
                 </span>
               </div>
 
-              <h2 className="form-card__title">2. Select Schedule & Service Address</h2>
+              <h2 className="form-card__title">2. Customer Account & Service Address</h2>
               <p className="form-card__sub" style={{ marginBottom: 22 }}>
-                Where and when should our certified field specialist arrive?
+                Sign in or create your customer account to confirm your service appointment.
               </p>
+
+              {/* Logged in state or Sign Up requirement banner */}
+              {currentUser ? (
+                <div style={{
+                  background: '#ECFDF5',
+                  border: '1.5px solid #10B981',
+                  borderRadius: 10,
+                  padding: '12px 16px',
+                  marginBottom: 20,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 8
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '1.4rem' }}>👤</span>
+                    <div>
+                      <div style={{ fontWeight: 800, color: '#065F46', fontSize: '0.9rem' }}>
+                        Logged in as: {currentUser.name || 'Customer'}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#047857' }}>
+                        {currentUser.phone || currentUser.email} • Booking linked to your dashboard
+                      </div>
+                    </div>
+                  </div>
+                  <button 
+                    type="button" 
+                    onClick={handleLogout}
+                    style={{ background: 'none', border: 'none', color: '#DC2626', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Switch Account
+                  </button>
+                </div>
+              ) : (
+                <div style={{
+                  background: '#F8FAFC',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: 12,
+                  padding: '16px 18px',
+                  marginBottom: 22
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>🔐</span> {authMode === 'signup' ? 'Create Customer Account for this Booking' : 'Sign in to Your Account'}
+                    </div>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <button
+                        type="button"
+                        onClick={() => setAuthMode('signup')}
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          background: authMode === 'signup' ? 'var(--primary)' : 'white',
+                          color: authMode === 'signup' ? 'white' : 'var(--text)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 6,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Sign Up
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAuthMode('login')}
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          background: authMode === 'login' ? 'var(--primary)' : 'white',
+                          color: authMode === 'login' ? 'white' : 'var(--text)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 6,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Sign In
+                      </button>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#64748B', margin: 0 }}>
+                    {authMode === 'signup'
+                      ? 'Creating an account allows you to track technicians live, approve on-site quotes, and download 60-day warranty job sheets.'
+                      : 'Enter your account password to link this booking directly to your customer profile.'}
+                  </p>
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} noValidate>
                 {/* Schedule Picker */}
@@ -344,10 +503,10 @@ function BookingFormContent() {
                   </div>
                 </div>
 
-                {/* Customer Contact */}
+                {/* Customer Contact & Password */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 700 }}>Customer Name *</label>
+                    <label className="form-label" style={{ fontWeight: 700 }}>Full Name *</label>
                     <input
                       type="text"
                       className={`form-input${errors.name ? ' error' : ''}`}
@@ -359,7 +518,7 @@ function BookingFormContent() {
                     {errors.name && <p className="form-error">⚠️ {errors.name}</p>}
                   </div>
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 700 }}>Mobile Number (For OTP & Tracking) *</label>
+                    <label className="form-label" style={{ fontWeight: 700 }}>Mobile Number *</label>
                     <input
                       type="tel"
                       maxLength={10}
@@ -372,6 +531,36 @@ function BookingFormContent() {
                     {errors.phone && <p className="form-error">⚠️ {errors.phone}</p>}
                   </div>
                 </div>
+
+                {/* Optional Email & Password (when not logged in) */}
+                {!currentUser && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+                    <div className="form-group">
+                      <label className="form-label">Email Address (Optional)</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="you@example.com"
+                        value={form.email}
+                        onChange={(e) => update('email', e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontWeight: 700 }}>
+                        {authMode === 'signup' ? 'Create Account Password *' : 'Account Password *'}
+                      </label>
+                      <input
+                        type="password"
+                        className={`form-input${errors.password ? ' error' : ''}`}
+                        placeholder="••••••••"
+                        value={accountPassword}
+                        onChange={(e) => setAccountPassword(e.target.value)}
+                        required
+                      />
+                      {errors.password && <p className="form-error">⚠️ {errors.password}</p>}
+                    </div>
+                  </div>
+                )}
 
                 {/* Location Details */}
                 <div className="form-group" style={{ marginBottom: 16 }}>
@@ -441,7 +630,7 @@ function BookingFormContent() {
                 {errors.submit && <p className="form-error" style={{ marginBottom: 16 }}>⚠️ {errors.submit}</p>}
 
                 <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ height: 52, fontSize: '1.05rem', fontWeight: 700 }}>
-                  {loading ? <span className="loader" style={{ width: 22, height: 22, borderWidth: 2 }} /> : '⚡ Confirm Service Request →'}
+                  {loading ? <span className="loader" style={{ width: 22, height: 22, borderWidth: 2 }} /> : !currentUser ? '⚡ Create Account & Confirm Service Booking →' : '⚡ Confirm Service Request →'}
                 </button>
               </form>
             </div>
@@ -453,7 +642,7 @@ function BookingFormContent() {
               <div style={{ fontSize: '3.8rem', marginBottom: 12 }}>🎉</div>
               <h2 className="form-card__title">Booking Registered Successfully!</h2>
               <p className="form-card__sub" style={{ marginTop: 6, fontSize: '0.95rem' }}>
-                A certified master technician is being dispatched to your address.
+                Your service request has been confirmed and linked to your customer account.
               </p>
 
               <div style={{
