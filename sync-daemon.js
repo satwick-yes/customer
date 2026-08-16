@@ -8,6 +8,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const { saveJobSheetPdfToFile } = require('./lib/nodePdfGenerator');
+
 let lastHash = '';
 
 async function sync(silent = false) {
@@ -41,7 +43,13 @@ async function sync(silent = false) {
     }
   });
 
-  // Now create the Excel file
+  // Create/ensure the local 'jobsheets' folder on this laptop
+  const jobSheetsDir = path.join(__dirname, 'jobsheets');
+  if (!fs.existsSync(jobSheetsDir)) {
+    fs.mkdirSync(jobSheetsDir, { recursive: true });
+  }
+
+  // Now create the Excel file and Job Sheet PDFs
   if (bookingsData.bookings && bookingsData.bookings.length > 0) {
     const flatBookings = bookingsData.bookings.map(b => ({
       Job_ID: b.jobId,
@@ -63,6 +71,20 @@ async function sync(silent = false) {
     
     xlsx.writeFile(workbook, path.join(__dirname, 'bookings.xlsx'));
     console.log(`✅ [${new Date().toLocaleTimeString()}] Successfully updated local bookings.xlsx`);
+
+    // Generate and download all Job Sheet PDFs locally onto this laptop
+    let pdfCount = 0;
+    bookingsData.bookings.forEach(b => {
+      try {
+        const savedPath = saveJobSheetPdfToFile(b, jobSheetsDir);
+        if (savedPath) {
+          pdfCount++;
+        }
+      } catch (pdfErr) {
+        console.error(`❌ Error generating PDF for ${b.jobId}:`, pdfErr);
+      }
+    });
+    console.log(`📄 [${new Date().toLocaleTimeString()}] Successfully updated ${pdfCount} Job Sheet PDFs in: ${jobSheetsDir}`);
   }
 }
 

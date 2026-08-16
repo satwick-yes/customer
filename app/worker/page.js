@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { TECHNICIANS } from '@/lib/technicians';
+import { downloadJobSheetPDF } from '@/lib/pdfGenerator';
 
 const AC_CHECKLIST = [
   'Filter Cleaning & Sanitization',
@@ -30,6 +31,13 @@ const STATUS_FLOW = [
   'Work in Progress',
   'Completed'
 ];
+
+const getWorkerStatusBadge = (status) => {
+  if (status === 'Completed') return 'badge-completed';
+  if (status === 'Pending') return 'badge-pending';
+  if (status === 'Technician Assigned') return 'badge-assigned';
+  return 'badge-progress';
+};
 
 export default function WorkerPortal() {
   const [currentTech, setCurrentTech] = useState(TECHNICIANS[0]);
@@ -132,11 +140,45 @@ export default function WorkerPortal() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleToggle = (item) => {
-    setChecklist(prev => ({
-      ...prev,
-      [item]: !prev[item]
-    }));
+  const [syncingChecklist, setSyncingChecklist] = useState(false);
+
+  const handleToggle = async (item) => {
+    const updated = {
+      ...checklist,
+      [item]: !checklist[item]
+    };
+    setChecklist(updated);
+
+    if (booking?.docId) {
+      setSyncingChecklist(true);
+      try {
+        await fetch(`/api/bookings/${encodeURIComponent(booking.docId)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ checklist: updated })
+        });
+        setBooking(prev => prev ? { ...prev, checklist: updated } : prev);
+      } catch (err) {
+        console.error('Failed to sync checklist update:', err);
+      } finally {
+        setTimeout(() => setSyncingChecklist(false), 600);
+      }
+    }
+  };
+
+  const handleTechNotesBlur = async () => {
+    if (booking?.docId && techNotes !== (booking.techNotes || '')) {
+      try {
+        await fetch(`/api/bookings/${encodeURIComponent(booking.docId)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ techNotes })
+        });
+        setBooking(prev => prev ? { ...prev, techNotes } : prev);
+      } catch (err) {
+        console.error('Failed to sync technician remarks:', err);
+      }
+    }
   };
 
   const assignToMyself = async () => {
@@ -253,16 +295,25 @@ export default function WorkerPortal() {
       });
 
       if (res.ok) {
-        setSuccess('🎉 Job successfully verified & marked as Completed!');
-        setBooking(prev => ({ 
-          ...prev, 
+        const completedBooking = { 
+          ...booking, 
           checklist, 
           techNotes, 
           paymentMethod, 
+          assignedTech: booking.assignedTech || currentTech,
           status: 'Completed', 
           statusHistory: newHistory 
-        }));
+        };
+        setSuccess('🎉 Job successfully verified & marked as Completed! Job sheet PDF downloaded.');
+        setBooking(completedBooking);
         fetchBookings(); 
+        
+        // Automatically download Job Sheet PDF onto device
+        try {
+          downloadJobSheetPDF(completedBooking);
+        } catch (pdfErr) {
+          console.error('PDF auto-download error:', pdfErr);
+        }
       } else {
         throw new Error('Failed to update booking');
       }
@@ -528,7 +579,7 @@ export default function WorkerPortal() {
                       </div>
 
                       <div style={{ textAlign: 'right' }}>
-                        <div className={`badge badge-${job.status === 'Completed' ? 'completed' : job.status === 'Work in Progress' ? 'progress' : 'assigned'}`} style={{ marginBottom: 6 }}>
+                        <div className={`badge ${getWorkerStatusBadge(job.status)}`} style={{ marginBottom: 6 }}>
                           {job.status}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
@@ -561,7 +612,7 @@ export default function WorkerPortal() {
                 <div>
                   <h2 style={{ marginBottom: 4, fontSize: '1.6rem' }}>{booking.jobId}</h2>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <span className={`badge badge-${booking.status === 'Completed' ? 'completed' : 'assigned'}`}>
+                    <span className={`badge ${getWorkerStatusBadge(booking.status)}`}>
                       {booking.status}
                     </span>
                     {booking.assignedTech && (
@@ -684,9 +735,20 @@ export default function WorkerPortal() {
               </div>
 
               {/* Diagnostic Checklist */}
-              <h4 style={{ marginBottom: 8 }}>Diagnostic & Repair Checklist</h4>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                <h4 style={{ margin: 0 }}>Diagnostic & Repair Checklist</h4>
+                {syncingChecklist ? (
+                  <span style={{ fontSize: '0.78rem', color: '#2563EB', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span className="loader" style={{ width: 12, height: 12, borderWidth: 2 }} /> Syncing live...
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 600 }}>
+                    ⚡ Real-time synced with Customer & Admin
+                  </span>
+                )}
+              </div>
               <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: 14 }}>
-                Select all tests, cleaning, and replacement tasks executed during this visit.
+                Check items as you inspect and complete tasks. Changes update the customer live tracking and admin portal in real time.
               </p>
               <div className="checklist-grid" style={{ marginBottom: 24 }}>
                 {(booking.appliance === 'AC' ? AC_CHECKLIST : FRIDGE_CHECKLIST).map((item, idx) => (
@@ -710,6 +772,7 @@ export default function WorkerPortal() {
                 placeholder="E.g., Cleared clogged drain, replaced 35uF capacitor, gas pressure optimal at 65 PSI."
                 value={techNotes}
                 onChange={e => setTechNotes(e.target.value)}
+                onBlur={handleTechNotesBlur}
                 disabled={booking.status === 'Completed'}
                 style={{ width: '100%', marginBottom: 24, resize: 'vertical' }}
               />
@@ -769,9 +832,16 @@ export default function WorkerPortal() {
                 <div style={{ background: '#ecfdf5', border: '1.5px solid #a7f3d0', borderRadius: 12, padding: 20, marginBottom: 24, textAlign: 'center' }}>
                   <div style={{ fontSize: '2rem', marginBottom: 6 }}>✅</div>
                   <h3 style={{ color: '#065f46', marginBottom: 4 }}>Job Completed & Verified</h3>
-                  <p style={{ color: '#047857', fontSize: '0.9rem', margin: 0 }}>
+                  <p style={{ color: '#047857', fontSize: '0.9rem', margin: '0 0 16px' }}>
                     Payment ({paymentMethod || 'Cash'}) and diagnosis notes have been securely recorded in the backend.
                   </p>
+                  <button 
+                    onClick={() => downloadJobSheetPDF(booking)}
+                    className="btn btn-primary"
+                    style={{ background: '#059669', borderColor: '#047857', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', fontWeight: 700 }}
+                  >
+                    📥 Download Job Sheet (PDF)
+                  </button>
                 </div>
               )}
             </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import BookingComments from './BookingComments';
 import { TECHNICIANS } from '@/lib/technicians';
+import { downloadJobSheetPDF } from '@/lib/pdfGenerator';
 
 export default function JobSheet({ booking, onClose, onAssignTech }) {
   const ref = useRef(null);
@@ -121,7 +122,7 @@ export default function JobSheet({ booking, onClose, onAssignTech }) {
 
           <div className="sheet__status-row">
             <span>Current Status:</span>
-            <span className={`badge badge-${booking.status === 'Pending' ? 'pending' : booking.status === 'Technician Assigned' ? 'assigned' : booking.status === 'Work in Progress' ? 'progress' : 'completed'}`}>
+            <span className={`badge ${booking.status === 'Completed' ? 'badge-completed' : booking.status === 'Pending' ? 'badge-pending' : booking.status === 'Technician Assigned' ? 'badge-assigned' : 'badge-progress'}`}>
               {booking.status}
             </span>
           </div>
@@ -198,6 +199,7 @@ export default function JobSheet({ booking, onClose, onAssignTech }) {
 
         {onClose && (
           <div className="sheet__actions">
+            <button id="download-pdf-job-sheet" className="btn btn-outline" style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#065f46', fontWeight: 600 }} onClick={() => downloadJobSheetPDF(booking)}>📥 Download PDF</button>
             <button id="print-job-sheet" className="btn btn-outline" onClick={handlePrint}>🖨️ Print</button>
             <button id="copy-job-link" className="btn btn-outline" onClick={handleCopy}>🔗 Copy Link</button>
             <button id="close-job-sheet" className="btn btn-primary" onClick={onClose}>✓ Done</button>

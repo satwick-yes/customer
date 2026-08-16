@@ -65,6 +65,10 @@
       ],
       "feedback": null,
       "appliance": "AC",
+      "checklist": {
+        "PCB Repair": true,
+        "Drainage Fix": true
+      },
       "createdAt": "2026-08-15T13:57:40.819Z",
       "statusHistory": [
         {
@@ -78,6 +82,347 @@
         {
           "status": "Completed",
           "timestamp": "2026-08-15T13:59:23.306Z"
+        }
+      ]
+    },
+    {
+      "name": "Supreme",
+      "docId": "msugm9f8vqlska09oe",
+      "issue": "sdadadadadad",
+      "jobId": "AC-93169J",
+      "phone": "7908443121",
+      "price": 499,
+      "status": "Technician Assigned",
+      "address": "asasadaa",
+      "feedback": null,
+      "appliance": "AC",
+      "createdAt": "2026-08-15T14:16:53.300Z",
+      "statusHistory": [
+        {
+          "status": "Pending",
+          "timestamp": "2026-08-15T14:16:54.413Z"
+        },
+        {
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-15T14:19:12.592Z"
+        }
+      ]
+    },
+    {
+      "otp": "4385",
+      "name": "Sat",
+      "docId": "msui1034rrikos0j3h",
+      "issue": "aasdd",
+      "jobId": "AC-11887N",
+      "phone": "7908443121",
+      "price": 499,
+      "status": "Work in Progress",
+      "address": "160/21 guru teg bahadur nagar ",
+      "feedback": null,
+      "appliance": "AC",
+      "createdAt": "2026-08-15T14:56:20.656Z",
+      "assignedTech": {
+        "id": "TECH-101",
+        "name": "Rajesh Sharma",
+        "email": "rajesh@coolfix.in",
+        "phone": "+91 98765 43210",
+        "avatar": "👨‍🔧",
+        "rating": 4.9,
+        "specialty": "AC & Refrigeration Master",
+        "experience": "8 years"
+      },
+      "statusHistory": [
+        {
+          "status": "Pending",
+          "timestamp": "2026-08-15T14:56:21.177Z"
+        },
+        {
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-15T15:04:23.137Z"
+        },
+        {
+          "note": "Assigned to Rajesh Sharma (TECH-101)",
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-15T15:11:28.784Z"
+        },
+        {
+          "note": "Updated by Rajesh Sharma",
+          "status": "On the Way",
+          "timestamp": "2026-08-15T15:11:47.103Z"
+        },
+        {
+          "note": "Updated by Rajesh Sharma",
+          "status": "Reached Location",
+          "timestamp": "2026-08-15T15:11:54.828Z"
+        },
+        {
+          "note": "Updated by Rajesh Sharma",
+          "status": "Work in Progress",
+          "timestamp": "2026-08-15T15:12:03.998Z"
+        }
+      ]
+    },
+    {
+      "otp": "3361",
+      "name": "Satwick",
+      "docId": "msuir4m6gorw1mpg204",
+      "issue": "Ttgg",
+      "jobId": "FR-74461S",
+      "phone": "9832731345",
+      "price": 299,
+      "status": "Completed",
+      "address": "guru teg bahadur nagar",
+      "feedback": null,
+      "appliance": "Fridge",
+      "checklist": {
+        "Internal Fan Motor Check": true,
+        "Refrigerant Gas Charging": true,
+        "Compressor & Relay Inspection": true,
+        "Defrost Heater & Timer Testing": true,
+        "Door Gasket Magnetic Seal Check": true,
+        "Thermostat & Temperature Calibration": true
+      },
+      "createdAt": "2026-08-15T15:16:39.582Z",
+      "techNotes": "",
+      "assignedTech": {
+        "id": "TECH-103",
+        "name": "Suresh Kumar",
+        "email": "suresh@coolfix.in",
+        "phone": "+91 98765 43212",
+        "avatar": "🧊",
+        "rating": 4.9,
+        "specialty": "Smart Refrigerator Expert",
+        "experience": "10 years"
+      },
+      "paymentMethod": "Cash",
+      "statusHistory": [
+        {
+          "status": "Pending",
+          "timestamp": "2026-08-15T15:16:38.452Z"
+        },
+        {
+          "note": "Assigned to Suresh Kumar (TECH-103)",
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-15T15:17:01.040Z"
+        },
+        {
+          "note": "Updated by Suresh Kumar",
+          "status": "Reached Location",
+          "timestamp": "2026-08-15T15:17:19.260Z"
+        },
+        {
+          "note": "Updated by Suresh Kumar",
+          "status": "Work in Progress",
+          "timestamp": "2026-08-15T15:17:38.839Z"
+        },
+        {
+          "note": "Completed by Suresh Kumar with OTP verification",
+          "status": "Completed",
+          "timestamp": "2026-08-15T15:17:58.968Z"
+        }
+      ]
+    },
+    {
+      "otp": "1338",
+      "name": "Supreme",
+      "docId": "msvook2bbr2ylx8zact",
+      "issue": "not working properly and is making noise ",
+      "jobId": "AC-81394E",
+      "phone": "7908443121",
+      "price": 499,
+      "status": "Completed",
+      "address": "160/21 guru teg bahadur nagar ",
+      "feedback": null,
+      "appliance": "AC",
+      "checklist": {
+        "Capacitor & Electrical Check": true,
+        "Drainage Pipe Flush & Cleaning": true,
+        "Filter Cleaning & Sanitization": true
+      },
+      "createdAt": "2026-08-16T10:50:23.507Z",
+      "techNotes": "",
+      "assignedTech": {
+        "id": "TECH-104",
+        "name": "Vikram Singh",
+        "email": "vikram@coolfix.in",
+        "phone": "+91 98765 43213",
+        "avatar": "⚡",
+        "rating": 4.7,
+        "specialty": "PCB & Gas Refill Pro",
+        "experience": "5 years"
+      },
+      "paymentMethod": "Cash",
+      "statusHistory": [
+        {
+          "status": "Pending",
+          "timestamp": "2026-08-16T10:50:21.007Z"
+        },
+        {
+          "note": "Assigned to Vikram Singh (TECH-104)",
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-16T10:50:57.850Z"
+        },
+        {
+          "note": "Updated by Vikram Singh",
+          "status": "On the Way",
+          "timestamp": "2026-08-16T10:51:21.296Z"
+        },
+        {
+          "note": "Updated by Vikram Singh",
+          "status": "Reached Location",
+          "timestamp": "2026-08-16T10:51:25.267Z"
+        },
+        {
+          "note": "Updated by Vikram Singh",
+          "status": "Work in Progress",
+          "timestamp": "2026-08-16T10:51:29.908Z"
+        },
+        {
+          "note": "Completed by Vikram Singh with OTP verification",
+          "status": "Completed",
+          "timestamp": "2026-08-16T10:51:58.584Z"
+        }
+      ]
+    },
+    {
+      "otp": "9511",
+      "name": "Satwick Shaw ",
+      "docId": "msvp6vv75hi83no6ee6",
+      "issue": "I have faulty fans ",
+      "jobId": "AC-93930I",
+      "phone": "9832731345",
+      "price": 499,
+      "status": "Completed",
+      "address": "guru teg bahadur nagar",
+      "comments": [
+        {
+          "text": "How long",
+          "author": "Customer",
+          "timestamp": "2026-08-16T11:07:24.703Z"
+        },
+        {
+          "text": "Sir 5 minutes",
+          "author": "Admin",
+          "timestamp": "2026-08-16T11:07:50.826Z"
+        }
+      ],
+      "feedback": null,
+      "appliance": "AC",
+      "checklist": {
+        "Compressor Performance Test": true,
+        "Capacitor & Electrical Check": true,
+        "Drainage Pipe Flush & Cleaning": true,
+        "Filter Cleaning & Sanitization": true,
+        "Cooling & Condenser Coil Jet Wash": true,
+        "Refrigerant Gas Pressure & Leak Check": true
+      },
+      "createdAt": "2026-08-16T11:04:38.611Z",
+      "techNotes": "",
+      "assignedTech": {
+        "id": "TECH-105",
+        "name": "Rahul Das",
+        "email": "rahul@coolfix.in",
+        "phone": "+91 98765 43214",
+        "avatar": "❄️",
+        "rating": 4.9,
+        "specialty": "Commercial & Home Cooling",
+        "experience": "7 years"
+      },
+      "paymentMethod": "Cash",
+      "statusHistory": [
+        {
+          "status": "Pending",
+          "timestamp": "2026-08-16T11:04:36.422Z"
+        },
+        {
+          "note": "Assigned to Rahul Das (TECH-105)",
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-16T11:05:25.003Z"
+        },
+        {
+          "note": "Updated by Rahul Das",
+          "status": "Reached Location",
+          "timestamp": "2026-08-16T11:06:22.776Z"
+        },
+        {
+          "note": "Updated by Rahul Das",
+          "status": "Work in Progress",
+          "timestamp": "2026-08-16T11:06:34.142Z"
+        },
+        {
+          "note": "Completed by Rahul Das with OTP verification",
+          "status": "Completed",
+          "timestamp": "2026-08-16T11:08:11.752Z"
+        }
+      ]
+    },
+    {
+      "otp": "3684",
+      "name": "Ankit Majhi",
+      "docId": "mswbvb1fqpoj0wqsdqq",
+      "issue": "ami gay ho",
+      "jobId": "AC-73488N",
+      "phone": "6294125531",
+      "price": 499,
+      "status": "Completed",
+      "address": "bencahity",
+      "feedback": null,
+      "appliance": "AC",
+      "checklist": {
+        "Compressor Performance Test": true,
+        "Capacitor & Electrical Check": true,
+        "Drainage Pipe Flush & Cleaning": true,
+        "Filter Cleaning & Sanitization": true,
+        "Cooling & Condenser Coil Jet Wash": true,
+        "Refrigerant Gas Pressure & Leak Check": true
+      },
+      "createdAt": "2026-08-16T21:39:29.571Z",
+      "techNotes": "",
+      "assignedTech": {
+        "id": "TECH-105",
+        "name": "Rahul Das",
+        "email": "rahul@coolfix.in",
+        "phone": "+91 98765 43214",
+        "avatar": "❄️",
+        "rating": 4.9,
+        "specialty": "Commercial & Home Cooling",
+        "experience": "7 years"
+      },
+      "paymentMethod": "Cash",
+      "statusHistory": [
+        {
+          "status": "Pending",
+          "timestamp": "2026-08-16T21:39:25.628Z"
+        },
+        {
+          "note": "Assigned to Rahul Das (TECH-105)",
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-16T21:39:49.000Z"
+        },
+        {
+          "note": "Updated by Rahul Das",
+          "status": "On the Way",
+          "timestamp": "2026-08-16T21:40:01.412Z"
+        },
+        {
+          "note": "Updated by Rahul Das",
+          "status": "Reached Location",
+          "timestamp": "2026-08-16T21:40:08.195Z"
+        },
+        {
+          "note": "Updated by Rahul Das",
+          "status": "Technician Assigned",
+          "timestamp": "2026-08-16T21:40:20.512Z"
+        },
+        {
+          "note": "Updated by Rahul Das",
+          "status": "Work in Progress",
+          "timestamp": "2026-08-16T21:40:31.467Z"
+        },
+        {
+          "note": "Completed by Rahul Das with OTP verification",
+          "status": "Completed",
+          "timestamp": "2026-08-16T21:40:52.197Z"
         }
       ]
     }

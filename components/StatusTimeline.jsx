@@ -3,17 +3,21 @@
 import { useState, useEffect } from 'react';
 
 const STATUS_STEPS = [
-  { key: 'Pending',             label: 'Booking Confirmed',    icon: '📋', desc: 'Your booking has been received.' },
-  { key: 'Technician Assigned', label: 'Technician Assigned',  icon: '👨‍🔧', desc: 'A certified technician is on the way.' },
-  { key: 'Work in Progress',    label: 'Work in Progress',     icon: '🔧', desc: 'Repair work has started.' },
-  { key: 'Completed',           label: 'Job Completed',        icon: '✅', desc: 'Your appliance is repaired.' },
+  { key: 'Pending',             label: 'Booking Confirmed',    icon: '📋', desc: 'Your booking has been received and confirmed.' },
+  { key: 'Technician Assigned', label: 'Technician Assigned',  icon: '👨‍🔧', desc: 'A certified master technician is assigned.' },
+  { key: 'On the Way',          label: 'On the Way',           icon: '🛵', desc: 'Technician is on the way to your location.' },
+  { key: 'Reached Location',    label: 'Reached Location',     icon: '📍', desc: 'Technician has reached your location.' },
+  { key: 'Work in Progress',    label: 'Work in Progress',     icon: '🔧', desc: 'Repair & diagnostic work is underway.' },
+  { key: 'Completed',           label: 'Job Completed',        icon: '✅', desc: 'Your appliance is repaired and verified.' },
 ];
 
 const STATUS_INDEX = {
   'Pending': 0,
   'Technician Assigned': 1,
-  'Work in Progress': 2,
-  'Completed': 3,
+  'On the Way': 2,
+  'Reached Location': 3,
+  'Work in Progress': 4,
+  'Completed': 5,
 };
 
 export default function StatusTimeline({ status }) {

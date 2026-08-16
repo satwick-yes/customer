@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getBookingByJobId, subscribeToBooking } from '@/lib/bookingService';
+import { downloadJobSheetPDF } from '@/lib/pdfGenerator';
 import Link from 'next/link';
 
 export default function JobSheetStatic({ jobId }) {
@@ -46,6 +47,8 @@ export default function JobSheetStatic({ jobId }) {
   const STATUS_BADGE = {
     'Pending':             'badge-pending',
     'Technician Assigned': 'badge-assigned',
+    'On the Way':          'badge-progress',
+    'Reached Location':    'badge-progress',
     'Work in Progress':    'badge-progress',
     'Completed':           'badge-completed',
   };
@@ -80,6 +83,32 @@ export default function JobSheetStatic({ jobId }) {
 
         <div className="jss__divider" />
 
+        {/* Technician */}
+        {booking.assignedTech && (
+          <>
+            <div className="jss__section">
+              <div className="jss__section-title">Assigned Technician</div>
+              <div className="jss__rows">
+                <div className="jss__row">
+                  <span>Technician</span>
+                  <span style={{ color: '#1E40AF', fontWeight: 700 }}>
+                    {booking.assignedTech.name} ({booking.assignedTech.id})
+                  </span>
+                </div>
+                <div className="jss__row">
+                  <span>Contact</span>
+                  <span>{booking.assignedTech.phone}</span>
+                </div>
+                <div className="jss__row">
+                  <span>Specialty</span>
+                  <span>{booking.assignedTech.specialty || 'Master Cooling Tech'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="jss__divider" />
+          </>
+        )}
+
         {/* Service */}
         <div className="jss__section">
           <div className="jss__section-title">Service Details</div>
@@ -91,10 +120,32 @@ export default function JobSheetStatic({ jobId }) {
             <div className="jss__row"><span>Issue</span><span>{booking.issue}</span></div>
             <div className="jss__row">
               <span>Status</span>
-              <span className={`badge ${STATUS_BADGE[booking.status]}`}>{booking.status}</span>
+              <span className={`badge ${STATUS_BADGE[booking.status] || 'badge-pending'}`}>{booking.status}</span>
             </div>
           </div>
         </div>
+
+        {/* Diagnostic Checklist */}
+        {booking.checklist && Object.keys(booking.checklist).some(k => booking.checklist[k]) && (
+          <>
+            <div className="jss__divider" />
+            <div className="jss__section">
+              <div className="jss__section-title">✅ Diagnostic & Repair Checklist</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px', marginTop: 8 }}>
+                {Object.entries(booking.checklist).map(([item, checked], i) => checked && (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text)' }}>
+                    <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> {item}
+                  </div>
+                ))}
+              </div>
+              {booking.techNotes && (
+                <div style={{ marginTop: 12, fontSize: '0.85rem', color: 'var(--text-muted)', background: 'var(--bg-soft)', padding: '10px 14px', borderRadius: 8 }}>
+                  <strong>Technician Notes:</strong> {booking.techNotes}
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         <div className="jss__divider" />
 
@@ -129,6 +180,7 @@ export default function JobSheetStatic({ jobId }) {
 
       {/* Actions */}
       <div className="jss__actions">
+        <button id="download-pdf-sheet" className="btn btn-outline" style={{ background: '#ecfdf5', borderColor: '#a7f3d0', color: '#065f46', fontWeight: 600 }} onClick={() => downloadJobSheetPDF(booking)}>📥 Download PDF</button>
         <button id="print-sheet" className="btn btn-outline" onClick={() => window.print()}>🖨️ Print</button>
         <button
           id="copy-share-link"

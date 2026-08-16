@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import JobSheet from '@/components/JobSheet';
 import { TECHNICIANS } from '@/lib/technicians';
+import { downloadJobSheetPDF } from '@/lib/pdfGenerator';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -45,7 +46,7 @@ export default function AdminPage() {
     // Real-time polling
     const interval = setInterval(() => {
       fetchBookings();
-    }, 4000);
+    }, 2500);
     return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -90,7 +91,7 @@ export default function AdminPage() {
 
   const updateStatus = async (docId, newStatus) => {
     if (newStatus === 'Completed') {
-      if (!window.confirm('Are you sure you want to mark this job as Completed? This action is permanent.')) {
+      if (!window.confirm('Are you sure you want to mark this job as Completed? This will automatically generate and download the official Job Sheet PDF.')) {
         return;
       }
     }
@@ -98,9 +99,18 @@ export default function AdminPage() {
     try {
       const booking = bookings.find(b => b.docId === docId);
       const newHistory = [...(booking.statusHistory || []), { status: newStatus, timestamp: new Date().toISOString() }];
+      const updatedBooking = { ...booking, status: newStatus, statusHistory: newHistory };
       
       // Optimistic update
-      setBookings(prev => prev.map(b => b.docId === docId ? { ...b, status: newStatus, statusHistory: newHistory } : b));
+      setBookings(prev => prev.map(b => b.docId === docId ? updatedBooking : b));
+
+      if (newStatus === 'Completed') {
+        try {
+          downloadJobSheetPDF(updatedBooking);
+        } catch (pdfErr) {
+          console.error('Admin PDF auto-download error:', pdfErr);
+        }
+      }
 
       await fetch(`/api/bookings/${encodeURIComponent(docId)}`, {
         method: 'PATCH',
@@ -110,6 +120,22 @@ export default function AdminPage() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const downloadAllCompleted = () => {
+    const completedList = bookings.filter(b => b.status === 'Completed');
+    if (completedList.length === 0) {
+      alert('No completed jobs found to download.');
+      return;
+    }
+    let count = 0;
+    completedList.forEach((b, index) => {
+      setTimeout(() => {
+        downloadJobSheetPDF(b);
+      }, index * 400); // slight stagger so browser doesn't block multi-download
+      count++;
+    });
+    alert(`Downloading ${count} completed Job Sheet PDFs to your computer.`);
   };
 
   const getStatusBadge = (status) => {
@@ -172,8 +198,18 @@ export default function AdminPage() {
               <h1>Admin Portal</h1>
               <p style={{ color: 'var(--text-muted)' }}>Manage jobs, track performance, and dispatch 5 master technicians in real-time.</p>
             </div>
-            <div className="live-indicator">
-              <span className="rt-dot"></span> Live Updates
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button 
+                onClick={downloadAllCompleted}
+                className="btn btn-outline"
+                style={{ background: 'white', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: '0.85rem', fontWeight: 600 }}
+                title="Download all completed Job Sheets as PDF"
+              >
+                📥 Export Completed PDFs
+              </button>
+              <div className="live-indicator">
+                <span className="rt-dot"></span> Live Updates
+              </div>
             </div>
           </div>
 
@@ -270,7 +306,14 @@ export default function AdminPage() {
                           <div className="font-bold">{b.name}</div>
                           <div className="text-sm text-muted">{b.phone}</div>
                         </td>
-                        <td>{b.appliance === 'AC' ? '❄️ AC' : '🧊 Fridge'}</td>
+                        <td>
+                          <div>{b.appliance === 'AC' ? '❄️ AC' : '🧊 Fridge'}</div>
+                          {b.checklist && Object.values(b.checklist).filter(Boolean).length > 0 && (
+                            <div style={{ marginTop: 4, fontSize: '0.75rem', color: '#059669', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4, background: '#D1FAE5', padding: '2px 6px', borderRadius: 4 }}>
+                              <span>✓</span> {Object.values(b.checklist).filter(Boolean).length} checks
+                            </div>
+                          )}
+                        </td>
                         <td>
                           <select 
                             value={b.assignedTech?.id || ''}
@@ -315,13 +358,21 @@ export default function AdminPage() {
                           </select>
                         </td>
                         <td>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                             <button 
                               className="btn btn-primary" 
-                              style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                              style={{ padding: '6px 10px', fontSize: '0.82rem' }}
                               onClick={() => setSelectedBooking(b)}
                             >
                               Job Sheet
+                            </button>
+                            <button 
+                              className="btn btn-outline" 
+                              style={{ padding: '6px 10px', fontSize: '0.82rem', background: 'white' }}
+                              onClick={() => downloadJobSheetPDF(b)}
+                              title="Download PDF"
+                            >
+                              📄 PDF
                             </button>
                             <a 
                               href={`tel:${b.phone}`} 

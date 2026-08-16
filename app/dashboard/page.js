@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -8,11 +8,14 @@ import StatusTimeline from '@/components/StatusTimeline';
 import FeedbackForm from '@/components/FeedbackForm';
 import BookingComments from '@/components/BookingComments';
 import { getBookingByPhone, getBookingByJobId, subscribeToBooking } from '@/lib/bookingService';
+import { downloadJobSheetPDF } from '@/lib/pdfGenerator';
 import Link from 'next/link';
 
 const STATUS_BADGE = {
   'Pending':             'badge-pending',
   'Technician Assigned': 'badge-assigned',
+  'On the Way':          'badge-progress',
+  'Reached Location':    'badge-progress',
   'Work in Progress':    'badge-progress',
   'Completed':           'badge-completed',
 };
@@ -20,6 +23,8 @@ const STATUS_BADGE = {
 const STATUS_ICON = {
   'Pending':             '📋',
   'Technician Assigned': '👨‍🔧',
+  'On the Way':          '🛵',
+  'Reached Location':    '📍',
   'Work in Progress':    '🔧',
   'Completed':           '✅',
 };
@@ -43,11 +48,21 @@ function DashboardContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const downloadedRef = useRef(new Set());
+
   // Real-time listener when a booking is selected
   useEffect(() => {
     if (!selected) return;
     const unsub = subscribeToBooking(selected.jobId, (updated) => {
       setRealtime(updated);
+      if (updated?.status === 'Completed' && !downloadedRef.current.has(updated.jobId)) {
+        downloadedRef.current.add(updated.jobId);
+        try {
+          downloadJobSheetPDF(updated);
+        } catch (e) {
+          console.error('PDF auto download error on dashboard:', e);
+        }
+      }
     });
     return () => unsub();
   }, [selected?.jobId]);
@@ -268,18 +283,32 @@ function DashboardContent() {
               </div>
             )}
 
-            {/* Checklist / Repairs */}
+            {/* Checklist / Live Diagnostic & Repairs */}
             {activeBooking.checklist && Object.keys(activeBooking.checklist).some(k => activeBooking.checklist[k]) && (
               <div className="repairs-section">
-                <h3 className="section-title">🔧 Repairs in Progress</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                  <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>🔧</span> Live Diagnostic & Repair Checklist
+                  </h3>
+                  <span className="badge badge-progress" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
+                    ⚡ {Object.values(activeBooking.checklist).filter(Boolean).length} Tasks Completed Live
+                  </span>
+                </div>
                 <div className="repairs-list">
                   {Object.entries(activeBooking.checklist).map(([item, checked], i) => checked && (
-                    <div key={i} className="repair-item">
+                    <div key={i} className="repair-item anim-fade-in">
                       <span className="repair-icon">✓</span>
                       <span className="repair-text">{item}</span>
                     </div>
                   ))}
                 </div>
+
+                {activeBooking.techNotes && (
+                  <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px dashed var(--border)', fontSize: '0.88rem' }}>
+                    <strong style={{ color: 'var(--text-dark)' }}>📝 Technician Field Notes: </strong>
+                    <span style={{ color: 'var(--text-muted)' }}>{activeBooking.techNotes}</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -299,6 +328,7 @@ function DashboardContent() {
                       <div className="history-dot" />
                       <div className="history-content">
                         <strong>{h.status}</strong>
+                        {h.note && <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>{h.note}</span>}
                         <span>{new Date(h.timestamp).toLocaleString('en-IN')}</span>
                       </div>
                     </div>
@@ -313,6 +343,48 @@ function DashboardContent() {
               <BookingComments booking={activeBooking} />
             </div>
 
+            {/* Completed Job Sheet Download Banner */}
+            {activeBooking.status === 'Completed' && (
+              <div style={{
+                margin: '20px 0',
+                background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
+                border: '1.5px solid #a7f3d0',
+                borderRadius: 12,
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12
+              }}>
+                <div>
+                  <div style={{ fontWeight: 800, color: '#065f46', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>📄</span> Official Service Job Sheet & Invoice Ready
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#047857', marginTop: 2 }}>
+                    Your repair is completed and verified. Download your official PDF receipt for records & 30-day warranty.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button 
+                    onClick={() => downloadJobSheetPDF(activeBooking)}
+                    className="btn btn-primary"
+                    style={{ background: '#059669', borderColor: '#047857', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 700 }}
+                  >
+                    📥 Download PDF
+                  </button>
+                  <Link 
+                    href={`/job/${activeBooking.jobId}`} 
+                    target="_blank"
+                    className="btn btn-outline"
+                    style={{ background: 'white', borderColor: '#059669', color: '#059669', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 600 }}
+                  >
+                    👁️ View Sheet
+                  </Link>
+                </div>
+              </div>
+            )}
+
             {/* Feedback */}
             {activeBooking.status === 'Completed' && (
               <div className="feedback-section anim-fade-in">
@@ -322,7 +394,21 @@ function DashboardContent() {
             )}
 
             {/* Action Buttons */}
-            <div className="sheet-link-row">
+            <div className="sheet-link-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                className="btn btn-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                onClick={() => downloadJobSheetPDF(activeBooking)}
+              >
+                📥 Download Job Sheet (PDF)
+              </button>
+              <Link 
+                href={`/job/${activeBooking.jobId}`} 
+                target="_blank" 
+                className="btn btn-outline"
+              >
+                📄 Full Job Sheet
+              </Link>
               <button
                 className="btn btn-outline"
                 id="search-again"
