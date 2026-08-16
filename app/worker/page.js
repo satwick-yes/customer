@@ -678,15 +678,7 @@ export default function WorkerPortal() {
                   <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--primary)' }}>
                     ₹{booking.price || (booking.appliance === 'AC' ? 499 : 299)}
                   </div>
-                  <div className="text-sm text-muted" style={{ marginBottom: 6 }}>{booking.appliance} Service & Repair</div>
-                  <button
-                    onClick={() => downloadJobSheetPDF(booking)}
-                    className="btn btn-outline"
-                    style={{ padding: '4px 10px', fontSize: '0.78rem', background: '#ecfdf5', borderColor: '#a7f3d0', color: '#065f46', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                    title="Download Official Tax Invoice & Job Sheet PDF"
-                  >
-                    📥 Invoice PDF
-                  </button>
+                  <div className="text-sm text-muted">{booking.appliance} Service & Repair</div>
                 </div>
               </div>
 
