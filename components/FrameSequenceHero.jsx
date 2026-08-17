@@ -75,7 +75,7 @@ export default function FrameSequenceHero() {
 
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 2);
 
     if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
       canvas.width = width * dpr;
@@ -108,14 +108,14 @@ export default function FrameSequenceHero() {
     lastDrawnFrameRef.current = roundedIndex;
   };
 
-  // 3. Silky Continuous Smooth 60FPS LERP Loop
+  // 3. Silky Continuous Smooth 60/120FPS LERP Loop with 50% Smoother Damping (0.070 inertia)
   useEffect(() => {
     const renderLoop = () => {
-      // Smoothly interpolate current frame toward target scroll frame (Apple-style inertia)
+      // Smoothly interpolate current frame toward target scroll frame (50% smoother momentum damping)
       const diff = targetFrameRef.current - currentFrameRef.current;
       
-      if (Math.abs(diff) > 0.01) {
-        currentFrameRef.current += diff * 0.14; // smooth easing factor
+      if (Math.abs(diff) > 0.001) {
+        currentFrameRef.current += diff * 0.070; // 50% smoother Apple-style inertia (was 0.14)
         drawFrame(currentFrameRef.current);
       }
 
@@ -131,7 +131,7 @@ export default function FrameSequenceHero() {
     };
   }, []);
 
-  // 4. Scroll tracking
+  // 4. Scroll tracking with 50% slower progression (extended 510vh scroll track)
   useEffect(() => {
     const handleScroll = () => {
       const container = containerRef.current;
@@ -168,7 +168,7 @@ export default function FrameSequenceHero() {
   }, [isReady]);
 
   return (
-    <section ref={containerRef} className="frame-hero-wrapper" style={{ position: 'relative', height: '340vh', background: '#09090B' }}>
+    <section ref={containerRef} className="frame-hero-wrapper" style={{ position: 'relative', height: '510vh', background: '#09090B' }}>
       {/* Sticky Fullscreen Canvas Viewport */}
       <div style={{
         position: 'sticky',
@@ -181,7 +181,7 @@ export default function FrameSequenceHero() {
         justifyContent: 'center',
         background: '#09090B'
       }}>
-        {/* Canvas for 60fps sequence */}
+        {/* Canvas for 60/120fps smooth sequence */}
         <canvas
           ref={canvasRef}
           style={{
@@ -212,12 +212,12 @@ export default function FrameSequenceHero() {
         {/* Dynamic Storytelling Text Elements Synchronized with Scroll */}
         <div className="container" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', zIndex: 10 }}>
           
-          {/* Phase 1: 0% - 33% Progress */}
+          {/* Phase 1: 0% - 32% Progress */}
           <div style={{
             maxWidth: '680px',
-            opacity: progress < 0.32 ? Math.max(0, 1 - progress * 3.2) : 0,
-            transform: `translate3d(0, ${progress * -50}px, 0)`,
-            transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            opacity: progress < 0.32 ? Math.max(0, 1 - progress * 3.1) : 0,
+            transform: `translate3d(0, ${progress * -40}px, 0)`,
+            transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
             pointerEvents: progress < 0.32 ? 'auto' : 'none'
           }}>
             <div style={{
@@ -252,14 +252,14 @@ export default function FrameSequenceHero() {
             </div>
           </div>
 
-          {/* Phase 2: 34% - 66% Progress */}
+          {/* Phase 2: 32% - 68% Progress */}
           <div style={{
             position: 'absolute',
             maxWidth: '680px',
-            opacity: progress >= 0.30 && progress < 0.68 ? Math.sin((progress - 0.30) / 0.38 * Math.PI) : 0,
-            transform: `translate3d(0, ${(progress - 0.5) * -40}px, 0)`,
-            transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-            pointerEvents: progress >= 0.30 && progress < 0.68 ? 'auto' : 'none'
+            opacity: progress >= 0.28 && progress < 0.70 ? Math.sin((progress - 0.28) / 0.42 * Math.PI) : 0,
+            transform: `translate3d(0, ${(progress - 0.5) * -35}px, 0)`,
+            transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+            pointerEvents: progress >= 0.28 && progress < 0.70 ? 'auto' : 'none'
           }}>
             <div style={{
               display: 'inline-flex',
@@ -292,9 +292,9 @@ export default function FrameSequenceHero() {
           <div style={{
             position: 'absolute',
             maxWidth: '720px',
-            opacity: progress >= 0.68 ? Math.min((progress - 0.68) * 4, 1) : 0,
-            transform: `translate3d(0, ${(1 - progress) * 30}px, 0)`,
-            transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            opacity: progress >= 0.68 ? Math.min((progress - 0.68) * 3.5, 1) : 0,
+            transform: `translate3d(0, ${(1 - progress) * 25}px, 0)`,
+            transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
             pointerEvents: progress >= 0.68 ? 'auto' : 'none'
           }}>
             <div style={{
