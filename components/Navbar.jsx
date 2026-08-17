@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function Navbar({ userRole = 'public', workerInfo = null }) {
   const [scrolled, setScrolled] = useState(false);
@@ -12,6 +12,7 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
   const [activeCustomer, setActiveCustomer] = useState(null);
   const [activeAdmin, setActiveAdmin] = useState(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -97,27 +98,77 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
             )}
           </div>
 
-          {/* Desktop Nav Links - Strictly Role segregated */}
+          {/* Desktop Nav Links - Strictly Role segregated with active indicator */}
           <ul className="desktop-links">
             {userRole === 'admin' ? (
               <>
                 <li>
-                  <Link href="/admin" className="nav-link" style={{ color: '#DC2626', fontWeight: 800 }}>📋 Dispatch Board</Link>
+                  <Link 
+                    href="/admin" 
+                    className="nav-link" 
+                    style={{ 
+                      color: pathname === '/admin' ? '#DC2626' : undefined, 
+                      fontWeight: pathname === '/admin' ? 800 : 600,
+                      borderBottom: pathname === '/admin' ? '2px solid #DC2626' : 'none'
+                    }}
+                  >
+                    📋 Dispatch Board
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/admin#technicians" className="nav-link">👨‍🔧 Technicians</Link>
+                  <Link 
+                    href="/admin/technicians" 
+                    className="nav-link"
+                    style={{ 
+                      color: pathname === '/admin/technicians' ? '#DC2626' : undefined, 
+                      fontWeight: pathname === '/admin/technicians' ? 800 : 600,
+                      borderBottom: pathname === '/admin/technicians' ? '2px solid #DC2626' : 'none'
+                    }}
+                  >
+                    👨‍🔧 Technicians
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/admin#analytics" className="nav-link">📊 Operational Stats</Link>
+                  <Link 
+                    href="/admin/analytics" 
+                    className="nav-link"
+                    style={{ 
+                      color: pathname === '/admin/analytics' ? '#DC2626' : undefined, 
+                      fontWeight: pathname === '/admin/analytics' ? 800 : 600,
+                      borderBottom: pathname === '/admin/analytics' ? '2px solid #DC2626' : 'none'
+                    }}
+                  >
+                    📊 Operational Stats
+                  </Link>
                 </li>
               </>
             ) : userRole === 'worker' ? (
               <>
                 <li>
-                  <Link href="/worker" className="nav-link" style={{ color: '#DC2626', fontWeight: 800 }}>⚡ My Field Jobs</Link>
+                  <Link 
+                    href="/worker" 
+                    className="nav-link" 
+                    style={{ 
+                      color: pathname === '/worker' ? '#DC2626' : undefined, 
+                      fontWeight: pathname === '/worker' ? 800 : 600,
+                      borderBottom: pathname === '/worker' ? '2px solid #DC2626' : 'none'
+                    }}
+                  >
+                    ⚡ My Field Jobs
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/worker#unassigned" className="nav-link">📥 Open Queue</Link>
+                  <Link 
+                    href="/worker/queue" 
+                    className="nav-link"
+                    style={{ 
+                      color: pathname === '/worker/queue' ? '#DC2626' : undefined, 
+                      fontWeight: pathname === '/worker/queue' ? 800 : 600,
+                      borderBottom: pathname === '/worker/queue' ? '2px solid #DC2626' : 'none'
+                    }}
+                  >
+                    📥 Open Queue
+                  </Link>
                 </li>
               </>
             ) : userRole === 'auth' ? (
@@ -164,7 +215,7 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
                 }}
               >
                 <span>🛡️</span>
-                <span>{activeAdmin?.email || 'Operations Admin'}</span>
+                <span>{activeAdmin?.email || 'admin@coolfix.in'}</span>
               </div>
               <button 
                 type="button"
@@ -291,8 +342,11 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
               <Link href="/admin" onClick={() => setMobileOpen(false)} className="drawer-link">
                 <span className="material-symbols-outlined text-primary">dashboard</span> Dispatch Board
               </Link>
-              <Link href="/admin#technicians" onClick={() => setMobileOpen(false)} className="drawer-link">
+              <Link href="/admin/technicians" onClick={() => setMobileOpen(false)} className="drawer-link">
                 <span className="material-symbols-outlined">engineering</span> Technicians
+              </Link>
+              <Link href="/admin/analytics" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined">analytics</span> Operational Stats
               </Link>
               <button 
                 type="button"
@@ -310,6 +364,9 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
               </div>
               <Link href="/worker" onClick={() => setMobileOpen(false)} className="drawer-link">
                 <span className="material-symbols-outlined text-primary">handyman</span> My Field Jobs
+              </Link>
+              <Link href="/worker/queue" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined">inbox</span> Open Queue
               </Link>
               <button 
                 type="button"

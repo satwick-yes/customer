@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import JobSheet from '@/components/JobSheet';
@@ -10,8 +10,10 @@ import { downloadJobSheetPDF } from '@/lib/pdfGenerator';
 
 const ITEMS_PER_PAGE = 10;
 
-export default function AdminPage() {
+function AdminContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTech = searchParams.get('tech') || 'All';
   const [adminUser, setAdminUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,8 +29,13 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [applianceFilter, setApplianceFilter] = useState('All');
-  const [techFilter, setTechFilter] = useState('All');
+  const [techFilter, setTechFilter] = useState(initialTech);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const qTech = searchParams.get('tech');
+    if (qTech) setTechFilter(qTech);
+  }, [searchParams]);
 
   // Auto-dismiss toast after 6s
   useEffect(() => {
@@ -696,5 +703,13 @@ export default function AdminPage() {
 
       <Footer />
     </>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '200px 0' }}><span className="loader" /></div>}>
+      <AdminContent />
+    </Suspense>
   );
 }

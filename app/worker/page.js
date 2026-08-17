@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { TECHNICIANS } from '@/lib/technicians';
@@ -40,8 +40,9 @@ const getWorkerStatusBadge = (status) => {
   return 'badge-progress';
 };
 
-export default function WorkerPortal() {
+function WorkerPortalContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentTech, setCurrentTech] = useState(TECHNICIANS[0]);
   const [jobId, setJobId] = useState('');
   const [booking, setBooking] = useState(null);
@@ -52,7 +53,15 @@ export default function WorkerPortal() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
   const [allBookings, setAllBookings] = useState([]);
-  const [activeTab, setActiveTab] = useState('assigned'); // 'assigned', 'unassigned', 'all'
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'assigned'); // 'assigned', 'unassigned', 'all'
+  
+  useEffect(() => {
+    const qTab = searchParams.get('tab');
+    if (qTab) {
+      setActiveTab(qTab);
+      setBooking(null);
+    }
+  }, [searchParams]);
   
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [otp, setOtp] = useState('');
@@ -1135,5 +1144,13 @@ export default function WorkerPortal() {
       </div>
       <Footer />
     </>
+  );
+}
+
+export default function WorkerPortal() {
+  return (
+    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', padding: '200px 0' }}><span className="loader" /></div>}>
+      <WorkerPortalContent />
+    </Suspense>
   );
 }
