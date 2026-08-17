@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { TECHNICIANS } from '@/lib/technicians';
@@ -40,6 +41,7 @@ const getWorkerStatusBadge = (status) => {
 };
 
 export default function WorkerPortal() {
+  const router = useRouter();
   const [currentTech, setCurrentTech] = useState(TECHNICIANS[0]);
   const [jobId, setJobId] = useState('');
   const [booking, setBooking] = useState(null);
@@ -55,22 +57,25 @@ export default function WorkerPortal() {
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [otp, setOtp] = useState('');
 
-  // Load tech profile from storage
+  // Load tech profile from storage or redirect
   useEffect(() => {
     try {
       const saved = localStorage.getItem('coolfix_worker');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const matched = TECHNICIANS.find(t => 
-          (parsed.email && t.email.toLowerCase() === parsed.email.toLowerCase()) || 
-          (parsed.techId && t.id === parsed.techId)
-        );
-        if (matched) setCurrentTech(matched);
+      if (!saved) {
+        router.push('/worker/login');
+        return;
       }
+      const parsed = JSON.parse(saved);
+      const matched = TECHNICIANS.find(t => 
+        (parsed.email && t.email.toLowerCase() === parsed.email.toLowerCase()) || 
+        (parsed.techId && t.id === parsed.techId)
+      );
+      if (matched) setCurrentTech(matched);
     } catch (e) {
       console.error(e);
+      router.push('/worker/login');
     }
-  }, []);
+  }, [router]);
 
   const switchTech = (tech) => {
     setCurrentTech(tech);

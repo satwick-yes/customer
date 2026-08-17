@@ -46,15 +46,15 @@ export default function AdminLoginPage() {
 
   return (
     <>
-      <Navbar />
+      <Navbar userRole="auth" />
       <div className="login-page" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '60px 16px' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'center' }}>
           <div className="form-card anim-scale-in" style={{ width: '100%', maxWidth: '460px' }}>
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ fontSize: '3rem', marginBottom: 8 }}>🔒</div>
+              <div style={{ fontSize: '3rem', marginBottom: 8 }}>🛡️</div>
               <h1 className="form-card__title">Admin Operations Login</h1>
               <p className="form-card__sub" style={{ marginTop: 8 }}>
-                Secure gateway for dispatching technicians, tracking analytics, and managing customer service requests.
+                Authorized access only for dispatching technicians, live tracking, and managing customer service operations.
               </p>
             </div>
 
@@ -85,13 +85,18 @@ export default function AdminLoginPage() {
 
               {error && <p className="form-error" style={{ marginBottom: 16 }}>⚠️ {error}</p>}
 
-              <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ height: 48, fontSize: '1rem' }}>
-                {loading ? <span className="loader" style={{ width: 20, height: 20, borderWidth: 2 }} /> : 'Authenticate & Enter Portal →'}
+              <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ height: 48, fontSize: '1rem', fontWeight: 700 }}>
+                {loading ? <span className="loader" style={{ width: 20, height: 20, borderWidth: 2 }} /> : 'Authenticate & Enter Admin Portal →'}
               </button>
             </form>
 
-            <div style={{ marginTop: 20, textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Are you a Field Technician? <Link href="/worker/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Technician Login</Link>
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div>
+                Looking for Customer Booking? <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Customer Sign In</Link>
+              </div>
+              <div>
+                Are you a Field Technician? <Link href="/worker/login" style={{ color: 'var(--text-dark)', fontWeight: 600 }}>Technician Login →</Link>
+              </div>
             </div>
           </div>
         </div>

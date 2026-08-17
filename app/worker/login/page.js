@@ -60,7 +60,7 @@ export default function WorkerLoginPage() {
 
   return (
     <>
-      <Navbar userRole="worker" />
+      <Navbar userRole="auth" />
       <div className="login-page" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '60px 16px' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'center' }}>
           <div className="form-card anim-scale-in" style={{ width: '100%', maxWidth: '480px' }}>
@@ -68,7 +68,7 @@ export default function WorkerLoginPage() {
               <div style={{ fontSize: '3rem', marginBottom: 8 }}>🛠️</div>
               <h1 className="form-card__title">Technician Field Login</h1>
               <p className="form-card__sub" style={{ marginTop: 8 }}>
-                Sign in with your master technician profile to view jobs, build quotes, and manage real-time updates.
+                Sign in with your master technician profile to view jobs, checklist inspections, and manage real-time job updates.
               </p>
             </div>
 
@@ -132,13 +132,18 @@ export default function WorkerLoginPage() {
 
               {error && <p className="form-error" style={{ marginBottom: 16 }}>⚠️ {error}</p>}
 
-              <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ height: 48, fontSize: '1rem' }}>
+              <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ height: 48, fontSize: '1rem', fontWeight: 700 }}>
                 {loading ? <span className="loader" style={{ width: 20, height: 20, borderWidth: 2 }} /> : 'Sign In to Field Dashboard →'}
               </button>
             </form>
 
-            <div style={{ marginTop: 20, textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Are you an Admin? <Link href="/admin/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Admin Operations Login</Link>
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--border)', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div>
+                Looking for Customer Booking? <Link href="/login" style={{ color: 'var(--primary)', fontWeight: 600 }}>Customer Sign In</Link>
+              </div>
+              <div>
+                Are you an Administrator? <Link href="/admin/login" style={{ color: 'var(--text-dark)', fontWeight: 600 }}>Admin Operations Login →</Link>
+              </div>
             </div>
           </div>
         </div>

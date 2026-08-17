@@ -9,6 +9,8 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [techStatus, setTechStatus] = useState('Available');
   const [activeWorker, setActiveWorker] = useState(workerInfo);
+  const [activeCustomer, setActiveCustomer] = useState(null);
+  const [activeAdmin, setActiveAdmin] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -17,53 +19,114 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
     };
     window.addEventListener('scroll', handleScroll);
 
-    if (workerInfo) {
-      setActiveWorker(workerInfo);
-    } else if (userRole === 'worker') {
-      try {
-        const saved = localStorage.getItem('coolfix_worker');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          setActiveWorker(parsed.tech || parsed);
+    try {
+      if (userRole === 'worker') {
+        if (workerInfo) {
+          setActiveWorker(workerInfo);
+        } else {
+          const savedWorker = localStorage.getItem('coolfix_worker');
+          if (savedWorker) {
+            const parsed = JSON.parse(savedWorker);
+            setActiveWorker(parsed.tech || parsed);
+          }
         }
-      } catch (e) {}
+      } else if (userRole === 'admin') {
+        const savedAdmin = localStorage.getItem('coolfix_admin');
+        if (savedAdmin) {
+          setActiveAdmin(JSON.parse(savedAdmin));
+        }
+      } else if (userRole === 'public') {
+        const savedUser = localStorage.getItem('coolfix_user');
+        if (savedUser) {
+          setActiveCustomer(JSON.parse(savedUser));
+        }
+      }
+    } catch (e) {
+      console.error(e);
     }
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, [userRole, workerInfo]);
 
-  const handleLogout = (e) => {
+  const handleWorkerLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem('coolfix_worker');
+    setActiveWorker(null);
+    router.push('/worker/login');
+  };
+
+  const handleAdminLogout = (e) => {
+    e.preventDefault();
     localStorage.removeItem('coolfix_admin');
+    setActiveAdmin(null);
+    router.push('/admin/login');
+  };
+
+  const handleCustomerLogout = (e) => {
+    e.preventDefault();
     localStorage.removeItem('coolfix_user');
+    setActiveCustomer(null);
     router.push('/login');
   };
 
   const current = workerInfo || activeWorker;
-  const displayName = current?.name ? `${current.name.split(' ')[0]} (${current.techId || current.id || 'Tech'})` : 'Worker: Tech';
+  const displayName = current?.name ? `${current.name.split(' ')[0]} (${current.techId || current.id || 'Tech'})` : 'Tech Pro';
 
   return (
     <>
       <header className={`glass-header ${scrolled ? 'scrolled' : ''}`}>
         <nav className="container nav-content">
-          {/* Logo */}
-          <Link href={userRole === 'worker' ? '/worker' : '/'} className="logo font-headline">
-            Cool<span className="text-primary">Fix</span>
-          </Link>
+          {/* Logo with Role-specific Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Link 
+              href={userRole === 'admin' ? '/admin' : userRole === 'worker' ? '/worker' : '/'} 
+              className="logo font-headline"
+            >
+              Cool<span className="text-primary">Fix</span>
+            </Link>
+            
+            {userRole === 'admin' && (
+              <span className="badge" style={{ background: '#DC2626', color: '#FFFFFF', fontSize: '0.72rem', padding: '2px 8px', letterSpacing: '0.05em' }}>
+                ADMIN
+              </span>
+            )}
+            {userRole === 'worker' && (
+              <span className="badge" style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FCA5A5', fontSize: '0.72rem', padding: '2px 8px' }}>
+                FIELD PRO
+              </span>
+            )}
+          </div>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav Links - Strictly Role segregated */}
           <ul className="desktop-links">
-            {userRole === 'worker' ? (
+            {userRole === 'admin' ? (
               <>
                 <li>
-                  <Link href="/worker" className="nav-link" style={{ color: 'var(--primary)', fontWeight: 700 }}>Field Portal</Link>
+                  <Link href="/admin" className="nav-link" style={{ color: '#DC2626', fontWeight: 800 }}>📋 Dispatch Board</Link>
                 </li>
                 <li>
-                  <Link href="/dashboard" className="nav-link">Customer View</Link>
+                  <Link href="/admin#technicians" className="nav-link">👨‍🔧 Technicians</Link>
                 </li>
                 <li>
-                  <Link href="/admin" className="nav-link">Admin Dispatch</Link>
+                  <Link href="/admin#analytics" className="nav-link">📊 Operational Stats</Link>
+                </li>
+              </>
+            ) : userRole === 'worker' ? (
+              <>
+                <li>
+                  <Link href="/worker" className="nav-link" style={{ color: '#DC2626', fontWeight: 800 }}>⚡ My Field Jobs</Link>
+                </li>
+                <li>
+                  <Link href="/worker#unassigned" className="nav-link">📥 Open Queue</Link>
+                </li>
+              </>
+            ) : userRole === 'auth' ? (
+              <>
+                <li>
+                  <Link href="/" className="nav-link">← Back to Customer Site</Link>
+                </li>
+                <li>
+                  <Link href="/login" className="nav-link">Customer Sign In</Link>
                 </li>
               </>
             ) : (
@@ -81,7 +144,45 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
             )}
           </ul>
 
-          {userRole === 'worker' ? (
+          {/* Right Action Bar */}
+          {userRole === 'admin' ? (
+            <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div 
+                className="badge" 
+                style={{ 
+                  height: '38px', 
+                  fontSize: '0.84rem', 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: 6, 
+                  fontWeight: 700,
+                  padding: '0 14px',
+                  borderRadius: '20px',
+                  background: '#FEF2F2',
+                  color: '#DC2626',
+                  border: '1px solid #FECACA'
+                }}
+              >
+                <span>🛡️</span>
+                <span>{activeAdmin?.email || 'Operations Admin'}</span>
+              </div>
+              <button 
+                type="button"
+                onClick={handleAdminLogout} 
+                className="btn btn-outline" 
+                style={{ 
+                  height: '38px', 
+                  padding: '0 16px', 
+                  fontSize: '0.85rem', 
+                  display: 'inline-flex', 
+                  alignItems: 'center',
+                  borderRadius: '8px'
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          ) : userRole === 'worker' ? (
             <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div 
                 className="badge badge-assigned" 
@@ -119,7 +220,7 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
               </button>
               <button 
                 type="button"
-                onClick={handleLogout} 
+                onClick={handleWorkerLogout} 
                 className="btn btn-outline" 
                 style={{ 
                   height: '38px', 
@@ -133,11 +234,33 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
                 Logout
               </button>
             </div>
-          ) : (
+          ) : userRole === 'auth' ? (
             <div className="desktop-actions">
-              <Link href="/login" className="login-link">Login</Link>
-              <Link href="/booking" className="btn btn-primary">
-                <span className="material-symbols-outlined icon-filled">calendar_add_on</span>
+              <Link href="/login" className="btn btn-outline" style={{ height: 40, fontSize: '0.88rem' }}>
+                Customer Login
+              </Link>
+            </div>
+          ) : (
+            <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {activeCustomer ? (
+                <>
+                  <Link href="/dashboard" className="nav-link" style={{ fontWeight: 700, color: '#0F172A' }}>
+                    👤 {activeCustomer.name ? activeCustomer.name.split(' ')[0] : 'My Profile'}
+                  </Link>
+                  <button 
+                    type="button" 
+                    onClick={handleCustomerLogout}
+                    className="btn btn-outline" 
+                    style={{ height: 38, padding: '0 12px', fontSize: '0.82rem' }}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link href="/login" className="login-link">Login</Link>
+              )}
+              <Link href="/booking" className="btn btn-primary" style={{ height: 44, padding: '0 20px' }}>
+                <span className="material-symbols-outlined icon-filled" style={{ fontSize: '1.1rem' }}>calendar_add_on</span>
                 Book Repair
               </Link>
             </div>
@@ -159,26 +282,35 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
       {/* Mobile Drawer */}
       <div className={`mobile-drawer ${mobileOpen ? 'open' : ''}`}>
         <div className="drawer-content">
-          <Link href="/" onClick={() => setMobileOpen(false)} className="drawer-link">
-            <span className="material-symbols-outlined icon-filled text-primary">home</span> Home
-          </Link>
-          <Link href="/services" onClick={() => setMobileOpen(false)} className="drawer-link">
-            <span className="material-symbols-outlined">handyman</span> Services
-          </Link>
-          <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="drawer-link">
-            <span className="material-symbols-outlined">event_note</span> My Bookings
-          </Link>
-          <Link href="/how-it-works" onClick={() => setMobileOpen(false)} className="drawer-link">
-            <span className="material-symbols-outlined">help</span> How it Works
-          </Link>
-          
-          <div className="drawer-divider"></div>
-          
-          {userRole === 'worker' ? (
+          {userRole === 'admin' ? (
             <>
-              <div className="drawer-link" style={{ padding: '12px 24px' }}>
+              <div style={{ padding: '10px 0', borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
+                <span className="badge" style={{ background: '#DC2626', color: '#FFFFFF' }}>🛡️ Admin Operations</span>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 4 }}>{activeAdmin?.email || 'admin@coolfix.in'}</p>
+              </div>
+              <Link href="/admin" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined text-primary">dashboard</span> Dispatch Board
+              </Link>
+              <Link href="/admin#technicians" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined">engineering</span> Technicians
+              </Link>
+              <button 
+                type="button"
+                onClick={handleAdminLogout} 
+                className="btn btn-outline" 
+                style={{ marginTop: '20px', width: '100%', display: 'flex', justifyContent: 'center' }}
+              >
+                Logout Admin
+              </button>
+            </>
+          ) : userRole === 'worker' ? (
+            <>
+              <div className="drawer-link" style={{ padding: '12px 0' }}>
                 <span className="badge badge-assigned">👨‍🔧 {displayName}</span>
               </div>
+              <Link href="/worker" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined text-primary">handyman</span> My Field Jobs
+              </Link>
               <button 
                 type="button"
                 onClick={() => setTechStatus(techStatus === 'Available' ? 'On Job' : 'Available')} 
@@ -192,20 +324,51 @@ export default function Navbar({ userRole = 'public', workerInfo = null }) {
               </button>
               <button 
                 type="button"
-                onClick={handleLogout} 
+                onClick={handleWorkerLogout} 
                 className="btn btn-outline" 
                 style={{ marginTop: '20px', width: '100%', display: 'flex', justifyContent: 'center' }}
               >
-                Logout
+                Logout Technician
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" onClick={() => setMobileOpen(false)} className="drawer-link">
-                <span className="material-symbols-outlined">login</span> Login / Staff
+              <Link href="/" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined icon-filled text-primary">home</span> Home
+              </Link>
+              <Link href="/services" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined">handyman</span> Services
+              </Link>
+              <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined">event_note</span> My Bookings
+              </Link>
+              <Link href="/how-it-works" onClick={() => setMobileOpen(false)} className="drawer-link">
+                <span className="material-symbols-outlined">help</span> How it Works
               </Link>
               
-              <Link href="/booking" onClick={() => setMobileOpen(false)} className="btn btn-primary" style={{ marginTop: '20px', width: '100%' }}>
+              <div className="drawer-divider"></div>
+              
+              {activeCustomer ? (
+                <>
+                  <div style={{ padding: '8px 0', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-dark)' }}>
+                    👤 {activeCustomer.name || activeCustomer.phone || activeCustomer.email}
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={handleCustomerLogout} 
+                    className="btn btn-outline" 
+                    style={{ marginTop: '12px', width: '100%', display: 'flex', justifyContent: 'center' }}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link href="/login" onClick={() => setMobileOpen(false)} className="drawer-link">
+                  <span className="material-symbols-outlined">login</span> Customer Login
+                </Link>
+              )}
+              
+              <Link href="/booking" onClick={() => setMobileOpen(false)} className="btn btn-primary" style={{ marginTop: '16px', width: '100%' }}>
                 Book Repair
               </Link>
             </>

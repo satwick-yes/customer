@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import JobSheet from '@/components/JobSheet';
@@ -10,6 +11,8 @@ import { downloadJobSheetPDF } from '@/lib/pdfGenerator';
 const ITEMS_PER_PAGE = 10;
 
 export default function AdminPage() {
+  const router = useRouter();
+  const [adminUser, setAdminUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -36,6 +39,20 @@ export default function AdminPage() {
       return () => clearTimeout(timer);
     }
   }, [activeToast]);
+
+  // Auth Guard for Admin
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('coolfix_admin');
+      if (!saved) {
+        router.push('/admin/login');
+        return;
+      }
+      setAdminUser(JSON.parse(saved));
+    } catch (e) {
+      router.push('/admin/login');
+    }
+  }, [router]);
 
   const fetchBookings = async () => {
     try {
@@ -286,7 +303,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <Navbar />
+      <Navbar userRole="admin" />
       <div className="admin-page">
         <div className="container">
           <div className="admin-header">
